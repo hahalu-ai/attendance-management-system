@@ -12,10 +12,10 @@ CREATE TABLE manager_employee (
     manager_id  INT NOT NULL,
     employee_id INT NOT NULL,
     PRIMARY KEY (manager_id, employee_id),
-    CONSTRAINT fk_me_manager
+    CONSTRAINT foreign_key_manager --是下面代码名字
         FOREIGN KEY (manager_id) REFERENCES user(id)
         ON DELETE CASCADE,
-    CONSTRAINT fk_me_employee
+    CONSTRAINT  foreign_key_employee
         FOREIGN KEY (employee_id) REFERENCES user(id)
         ON DELETE CASCADE
 );
@@ -29,12 +29,12 @@ CREATE TABLE attendance_record (
     status         ENUM('pending', 'approved', 'rejected') NOT NULL DEFAULT 'pending',
     approved_by    INT NULL,
     approved_at    DATETIME NULL,
-    CONSTRAINT fk_ar_user
+    CONSTRAINT foreign_key_user
         FOREIGN KEY (user_id) REFERENCES user(id)
-        ON DELETE CASCADE,
-    CONSTRAINT fk_ar_approver
+        ON DELETE CASCADE, 
+    CONSTRAINT foreign_key_approver
         FOREIGN KEY (approved_by) REFERENCES user(id)
-        ON DELETE SET NULL
+        ON DELETE SET NULL --删掉manager，会保留改员工打卡记录
 );
 SHOW TABLES;
 INSERT INTO user (name, role) VALUES
