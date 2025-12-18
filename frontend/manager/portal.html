@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Portal - QR Check-in/out</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <style>
+        .qr-code-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+        }
+
+        .qr-display {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .qr-instructions {
+            margin-top: 15px;
+            font-size: 1.1em;
+            color: #666;
+        }
+
+        .qr-timer {
+            font-size: 1.5em;
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .worker-status {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .status-clocked-in {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .status-clocked-out {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Manager Portal</h1>
+            <p class="subtitle">QR Code-based Worker Check-in/Check-out</p>
+            <div id="user-info" class="user-info"></div>
+        </header>
+
+        <!-- Login Section -->
+        <div id="login-section" class="section">
+            <div class="card">
+                <h2>Manager Login</h2>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Login</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard-section" class="section" style="display: none;">
+            <div class="actions">
+                <button id="refresh-workers-btn" class="btn btn-primary">Refresh Workers</button>
+                <button id="view-pending-btn" class="btn btn-warning">Pending Approvals</button>
+                <button id="logout-btn" class="btn btn-secondary">Logout</button>
+            </div>
+
+            <!-- Worker Selection & QR Generation -->
+            <div id="qr-section" class="card">
+                <h2>Generate QR Code for Worker Check-in/out</h2>
+                <div class="form-group">
+                    <label for="worker-select">Select Worker:</label>
+                    <select id="worker-select" class="form-control">
+                        <option value="">-- Select a worker --</option>
+                    </select>
+                </div>
+
+                <div id="worker-status" class="worker-status" style="display: none;">
+                    <p><strong>Selected:</strong> <span id="selected-worker-name"></span></p>
+                    <p><strong>Current Status:</strong> <span id="worker-clock-status"></span></p>
+                </div>
+
+                <div class="action-buttons" style="display: none;" id="action-buttons">
+                    <button id="generate-checkin-btn" class="btn btn-success">Generate Check-In QR</button>
+                    <button id="generate-checkout-btn" class="btn btn-warning">Generate Check-Out QR</button>
+                </div>
+
+                <!-- QR Code Display -->
+                <div id="qr-display" class="qr-display" style="display: none;">
+                    <h3>QR Code Generated</h3>
+                    <p><strong>Worker:</strong> <span id="qr-worker-name"></span></p>
+                    <p><strong>Action:</strong> <span id="qr-action"></span></p>
+                    <p class="qr-timer"><strong>Expires in:</strong> <span id="qr-timer">5:00</span></p>
+
+                    <div id="qrcode" class="qr-code-container"></div>
+
+                    <p class="qr-instructions">
+                        Worker should scan this QR code with their phone to confirm <strong><span id="qr-action-type"></span></strong>
+                    </p>
+
+                    <button id="cancel-qr-btn" class="btn btn-danger">Cancel / Generate New</button>
+                </div>
+            </div>
+
+            <!-- Pending Approvals -->
+            <div id="pending-section" class="card">
+                <h2>Pending Approvals</h2>
+                <button id="refresh-pending-btn" class="btn btn-primary" style="margin-bottom: 15px;">Refresh</button>
+                <div id="pending-content"></div>
+            </div>
+        </div>
+
+        <div id="message" class="message"></div>
+    </div>
+
+    <script src="../js/manager.js"></script>
+</body>
+</html>

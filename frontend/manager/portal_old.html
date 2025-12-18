@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Portal - Attendance Management System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .manager-section {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .manager-section h1 {
+            color: #333;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .manager-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.3em;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .manager-name {
+            font-size: 1.5em;
+        }
+
+        .employees-section {
+            margin-top: 30px;
+        }
+
+        .employees-section h2 {
+            color: #555;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .employees-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .employee-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border: 2px solid transparent;
+        }
+
+        .employee-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border-color: #667eea;
+        }
+
+        .employee-avatar {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 2em;
+            color: white;
+            font-weight: bold;
+        }
+
+        .employee-name {
+            text-align: center;
+            font-size: 1.2em;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .employee-id {
+            text-align: center;
+            font-size: 0.9em;
+            color: #888;
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.5em;
+            padding: 50px;
+        }
+
+        .error {
+            background: #ff4444;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            color: #333;
+            font-size: 1.5em;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 2em;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .modal-body {
+            color: #555;
+            line-height: 1.8;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #555;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: scale(1.05);
+        }
+
+        .qr-code-container {
+            margin: 20px 0;
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .qr-code-container.active {
+            display: block;
+        }
+
+        #qrcode {
+            display: inline-block;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .qr-code-container p {
+            margin-top: 15px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .qr-code-container .qr-url {
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 0.85em;
+            word-break: break-all;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="manager-section">
+                <h1>Manager Portal</h1>
+                <div id="manager-info" class="loading">Loading...</div>
+            </div>
+
+            <div class="employees-section">
+                <h2>Employees</h2>
+                <div id="employees-grid" class="employees-grid">
+                    <!-- Employee cards will be inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for employee details -->
+    <div id="employee-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-employee-name"></h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-employee-details">
+                <!-- Employee details will be inserted here -->
+            </div>
+            <div class="qr-code-container" id="qr-code-container">
+                <div id="qrcode"></div>
+                <p>Scan this QR code to access employee information</p>
+                <div class="qr-url" id="qr-url"></div>
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-success" onclick="generateQRCode()">Generate QR Code</button>
+                <button class="btn btn-primary" onclick="viewAttendance()">View Attendance</button>
+                <button class="btn btn-secondary" onclick="viewReports()">View Reports</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const MANAGER_ID = 1; // Boss's ID
+        let selectedEmployee = null;
+
+        async function loadManagerAndEmployees() {
+            try {
+                const response = await fetch(`http://localhost:5001/manager/${MANAGER_ID}/employees`);
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch data');
+                }
+
+                const data = await response.json();
+
+                // Display manager info
+                const managerInfo = document.getElementById('manager-info');
+                managerInfo.innerHTML = `
+                    <div class="manager-badge">
+                        Manager: <span class="manager-name">${data.manager.name}</span>
+                    </div>
+                `;
+
+                // Display employees
+                const employeesGrid = document.getElementById('employees-grid');
+                employeesGrid.innerHTML = '';
+
+                data.employees.forEach(employee => {
+                    const initial = employee.name.charAt(employee.name.length - 1); // Get last character (A, B, C, D)
+                    const card = document.createElement('div');
+                    card.className = 'employee-card';
+                    card.onclick = () => showEmployeeDetails(employee);
+
+                    card.innerHTML = `
+                        <div class="employee-avatar">${initial}</div>
+                        <div class="employee-name">${employee.name}</div>
+                        <div class="employee-id">ID: ${employee.id}</div>
+                    `;
+
+                    employeesGrid.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('manager-info').innerHTML = `
+                    <div class="error">
+                        Error loading data. Please make sure the server is running and the database is initialized.
+                    </div>
+                `;
+            }
+        }
+
+        function showEmployeeDetails(employee) {
+            selectedEmployee = employee;
+            const modal = document.getElementById('employee-modal');
+            const modalName = document.getElementById('modal-employee-name');
+            const modalDetails = document.getElementById('modal-employee-details');
+
+            modalName.textContent = employee.name;
+            modalDetails.innerHTML = `
+                <p><strong>Employee ID:</strong> ${employee.id}</p>
+                <p><strong>Name:</strong> ${employee.name}</p>
+                <p><strong>Role:</strong> ${employee.role}</p>
+                <p><strong>Status:</strong> Active</p>
+            `;
+
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('employee-modal');
+            modal.classList.remove('active');
+
+            // Hide and clear QR code
+            const qrContainer = document.getElementById('qr-code-container');
+            qrContainer.classList.remove('active');
+            document.getElementById('qrcode').innerHTML = '';
+            document.getElementById('qr-url').innerHTML = '';
+
+            selectedEmployee = null;
+        }
+
+        function viewAttendance() {
+            if (selectedEmployee) {
+                alert(`Viewing attendance records for ${selectedEmployee.name} (ID: ${selectedEmployee.id})\n\nThis will redirect to the attendance page.`);
+                // You can redirect to another page or load attendance data here
+                // window.location.href = `/attendance?employee_id=${selectedEmployee.id}`;
+            }
+        }
+
+        function viewReports() {
+            if (selectedEmployee) {
+                alert(`Viewing reports for ${selectedEmployee.name} (ID: ${selectedEmployee.id})\n\nThis will redirect to the reports page.`);
+                // You can redirect to another page or load reports here
+                // window.location.href = `/reports?employee_id=${selectedEmployee.id}`;
+            }
+        }
+
+        function generateQRCode() {
+            if (!selectedEmployee) {
+                return;
+            }
+
+            const qrContainer = document.getElementById('qr-code-container');
+            const qrcodeDiv = document.getElementById('qrcode');
+            const qrUrlDiv = document.getElementById('qr-url');
+
+            // Clear existing QR code
+            qrcodeDiv.innerHTML = '';
+
+            // Generate URL with employee information
+            // This URL will be embedded in the QR code
+            const employeeUrl = `http://localhost:5001/employee/${selectedEmployee.id}/info`;
+
+            // Create QR code with the URL
+            new QRCode(qrcodeDiv, {
+                text: employeeUrl,
+                width: 200,
+                height: 200,
+                colorDark: "#667eea",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            // Display the URL
+            qrUrlDiv.innerHTML = `<strong>Embedded URL:</strong><br>${employeeUrl}`;
+
+            // Show QR code container
+            qrContainer.classList.add('active');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('employee-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Load data when page loads
+        window.addEventListener('load', loadManagerAndEmployees);
+    </script>
+</body>
+</html>

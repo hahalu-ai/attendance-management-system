@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Worker QR Scanner</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        .scanner-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .scan-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #qr-reader {
+            width: 100%;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .manual-entry {
+            margin-top: 30px;
+        }
+
+        .result-display {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .success-icon {
+            font-size: 48px;
+            color: #28a745;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .error-icon {
+            font-size: 48px;
+            color: #dc3545;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .scan-another-btn {
+            margin-top: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Worker QR Scanner</h1>
+            <p class="subtitle">Scan QR code to confirm check-in/check-out</p>
+        </header>
+
+        <div class="scanner-container">
+            <div class="scan-section">
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('camera')">Camera Scan</button>
+                    <button class="tab" onclick="switchTab('manual')">Manual Entry</button>
+                </div>
+
+                <!-- Camera Scan Tab -->
+                <div id="camera-tab" class="tab-content active">
+                    <h2>Scan QR Code</h2>
+                    <p>Point your camera at the QR code displayed by your manager</p>
+
+                    <div id="qr-reader" style="display: none;"></div>
+
+                    <div style="margin-top: 20px; text-align: center;">
+                        <button id="start-scan-btn" class="btn btn-primary">Start Camera</button>
+                        <button id="stop-scan-btn" class="btn btn-secondary" style="display: none;">Stop Camera</button>
+                    </div>
+                </div>
+
+                <!-- Manual Entry Tab -->
+                <div id="manual-tab" class="tab-content">
+                    <h2>Manual Token Entry</h2>
+                    <p>If camera scanning doesn't work, enter the token manually</p>
+
+                    <div class="form-group">
+                        <label for="manual-token">Token:</label>
+                        <input type="text" id="manual-token" class="form-control" placeholder="Enter QR code token">
+                    </div>
+
+                    <button id="submit-token-btn" class="btn btn-primary">Submit</button>
+                </div>
+
+                <!-- Result Display -->
+                <div id="result-display" class="result-display" style="display: none;">
+                    <div id="result-icon"></div>
+                    <h3 id="result-title"></h3>
+                    <p id="result-message"></p>
+                    <div id="result-details"></div>
+
+                    <button id="scan-another-btn" class="btn btn-primary scan-another-btn">Scan Another</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="message" class="message"></div>
+    </div>
+
+    <script src="../js/worker-scan.js"></script>
+</body>
+</html>

@@ -1,9 +1,9 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from db import get_connection
 from datetime import date, timedelta
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
 
 
 def get_user_role(conn, user_id):
@@ -488,9 +488,119 @@ def manager_monthly_summary():
         conn.close()
 
 
+@app.route("/manager/<int:manager_id>/employees", methods=["GET"])
+def get_manager_employees(manager_id):
+    conn = get_connection()
+    try:
+        cursor = conn.cursor(dictionary=True)
+
+        # Get manager info
+        cursor.execute(
+            "SELECT id, name, role FROM user WHERE id = %s AND role = 'manager'",
+            (manager_id,)
+        )
+        manager = cursor.fetchone()
+
+        if not manager:
+            return jsonify({"error": "Manager not found"}), 404
+
+        # Get all employees under this manager
+        cursor.execute(
+            """
+            SELECT u.id, u.name, u.role
+            FROM user u
+            JOIN manager_employee me ON u.id = me.employee_id
+            WHERE me.manager_id = %s
+            ORDER BY u.name
+            """,
+            (manager_id,)
+        )
+        employees = cursor.fetchall()
+
+        return jsonify({
+            "manager": manager,
+            "employees": employees
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/employee/<int:employee_id>/info", methods=["GET"])
+def get_employee_info(employee_id):
+    conn = get_connection()
+    try:
+        cursor = conn.cursor(dictionary=True)
+
+        # Get employee basic info
+        cursor.execute(
+            "SELECT id, name, role FROM user WHERE id = %s",
+            (employee_id,)
+        )
+        employee = cursor.fetchone()
+
+        if not employee:
+            return jsonify({"error": "Employee not found"}), 404
+
+        # Get employee's manager
+        cursor.execute(
+            """
+            SELECT u.id, u.name, u.role
+            FROM user u
+            JOIN manager_employee me ON u.id = me.manager_id
+            WHERE me.employee_id = %s
+            """,
+            (employee_id,)
+        )
+        manager = cursor.fetchone()
+
+        # Get recent attendance records
+        cursor.execute(
+            """
+            SELECT id, check_in_time, check_out_time, status
+            FROM attendance_record
+            WHERE user_id = %s
+            ORDER BY check_in_time DESC
+            LIMIT 5
+            """,
+            (employee_id,)
+        )
+        recent_attendance = cursor.fetchall()
+
+        return jsonify({
+            "employee": employee,
+            "manager": manager,
+            "recent_attendance": recent_attendance,
+            "qr_generated_at": "QR Code Access"
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/portal")
+def portal():
+    return send_from_directory('static', 'manager_portal.html')
+
+
 @app.route("/")
 def index():
     return "Attendance API is running."
+
+
+# Enable CORS for development
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
+    return response
 
 
 if __name__ == "__main__":
