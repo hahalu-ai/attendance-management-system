@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Account Settings</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        .danger-zone {
+            background: #fff5f5;
+            border: 2px solid #dc3545;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .danger-zone h3 {
+            color: #dc3545;
+            margin-bottom: 15px;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .profile-info p {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .profile-info strong {
+            display: inline-block;
+            width: 150px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Account Settings</h1>
+            <div id="user-info" class="user-info"></div>
+        </header>
+
+        <div id="settings-section" class="section">
+            <div class="card">
+                <h2>Profile Information</h2>
+                <div id="profile-info" class="profile-info"></div>
+                <a href="portal.html" class="btn btn-secondary" style="margin-top: 15px;">Back to Portal</a>
+            </div>
+
+            <div class="card">
+                <h2>Change Password</h2>
+                <form id="password-form">
+                    <div class="form-group">
+                        <label for="current-password">Current Password:</label>
+                        <input type="password" id="current-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-password">New Password:</label>
+                        <input type="password" id="new-password" required minlength="6">
+                        <small>Minimum 6 characters</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-new-password">Confirm New Password:</label>
+                        <input type="password" id="confirm-new-password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Change Password</button>
+                    <button type="button" id="cancel-password-btn" class="btn btn-secondary">Cancel</button>
+                </form>
+            </div>
+
+            <div class="card danger-zone">
+                <h3>Danger Zone</h3>
+                <div class="info-box">
+                    <p><strong>Warning:</strong> Account deletion is permanent and cannot be undone.</p>
+                    <p>All your data including time entries, QR requests, and manager assignments will be permanently deleted.</p>
+                </div>
+
+                <div id="deletion-check"></div>
+
+                <button id="show-delete-btn" class="btn btn-danger">Delete My Account</button>
+
+                <div id="delete-form" style="display: none; margin-top: 20px;">
+                    <h4>Confirm Account Deletion</h4>
+                    <div class="form-group">
+                        <label for="delete-password">Enter your password to confirm:</label>
+                        <input type="password" id="delete-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="confirm-checkbox">
+                            I understand that this action is permanent and cannot be undone
+                        </label>
+                    </div>
+                    <button id="confirm-delete-btn" class="btn btn-danger">Permanently Delete Account</button>
+                    <button id="cancel-delete-btn" class="btn btn-secondary">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="message" class="message"></div>
+    </div>
+
+    <script src="../js/manager-settings.js"></script>
+</body>
+</html>

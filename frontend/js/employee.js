@@ -23,7 +23,10 @@ function setupEventListeners() {
     document.getElementById('check-in-btn').addEventListener('click', handleCheckIn);
     document.getElementById('check-out-btn').addEventListener('click', handleCheckOut);
     document.getElementById('logout-btn').addEventListener('click', handleLogout);
-    document.getElementById('get-summary-btn').addEventListener('click', getMonthly Summary);
+    document.getElementById('get-summary-btn').addEventListener('click', getMonthlySummary);
+    document.getElementById('account-settings-btn').addEventListener('click', () => {
+        window.location.href = 'account-settings.html';
+    });
 }
 
 function setDefaultMonth() {

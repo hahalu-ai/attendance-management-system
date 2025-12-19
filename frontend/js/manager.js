@@ -34,6 +34,12 @@ function setupEventListeners() {
     document.getElementById('refresh-workers-btn').addEventListener('click', loadWorkers);
     document.getElementById('view-pending-btn').addEventListener('click', loadPendingApprovals);
     document.getElementById('refresh-pending-btn').addEventListener('click', loadPendingApprovals);
+    document.getElementById('user-management-btn').addEventListener('click', () => {
+        window.location.href = 'user-management.html';
+    });
+    document.getElementById('account-settings-btn').addEventListener('click', () => {
+        window.location.href = 'account-settings.html';
+    });
 }
 
 async function handleLogin(e) {

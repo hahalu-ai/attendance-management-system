@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Account - Attendance Management</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Create New Account</h1>
+            <p class="subtitle">Manager-only registration</p>
+            <div id="user-info" class="user-info"></div>
+        </header>
+
+        <!-- Manager Login Section -->
+        <div id="login-section" class="section">
+            <div class="card">
+                <h2>Manager Login Required</h2>
+                <p>Only managers can create new accounts. Please log in to continue.</p>
+                <form id="manager-login-form">
+                    <div class="form-group">
+                        <label for="manager-username">Manager Username:</label>
+                        <input type="text" id="manager-username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="manager-password">Manager Password:</label>
+                        <input type="password" id="manager-password" name="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Login</button>
+                    <a href="index.html" class="btn btn-secondary" style="margin-left: 10px;">Back to Home</a>
+                </form>
+            </div>
+        </div>
+
+        <!-- Registration Form Section -->
+        <div id="registration-section" class="section" style="display: none;">
+            <div class="card">
+                <h2>New User Registration</h2>
+                <form id="registration-form">
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" name="username" required
+                               pattern="[a-zA-Z0-9_]{3,50}"
+                               title="3-50 characters, letters, numbers, underscore only">
+                        <small>3-50 characters, letters, numbers, and underscores only</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="display-name">Display Name:</label>
+                        <input type="text" id="display-name" name="display_name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" name="password" required minlength="6">
+                        <small>Minimum 6 characters</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirm-password">Confirm Password:</label>
+                        <input type="password" id="confirm-password" name="confirm_password" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="user-level">User Level:</label>
+                        <select id="user-level" name="user_level" required>
+                            <option value="Contractor">Contractor</option>
+                            <option value="Manager">Manager</option>
+                        </select>
+                    </div>
+
+                    <div class="actions">
+                        <button type="submit" class="btn btn-primary">Create Account</button>
+                        <button type="button" id="cancel-btn" class="btn btn-secondary">Clear Form</button>
+                        <button type="button" id="logout-btn" class="btn btn-danger">Logout</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="message" class="message"></div>
+    </div>
+
+    <script src="js/register.js"></script>
+</body>
+</html>
