@@ -74,13 +74,37 @@ Copy the output and use it as SECRET_KEY value.
 
 #### Step 5: Initialize the Database
 
+**IMPORTANT**: The original `init_database.sql` file has issues that cause failures in Railway. Use the fixed version instead!
+
+**Option A: Use the Railway-Compatible SQL File (Recommended)**
+
 1. Click on your **MySQL service** (not web service)
-2. Go to "Data" tab
-3. Run this SQL command:
-   ```sql
-   CREATE DATABASE IF NOT EXISTS attendance_system;
-   ```
-4. Copy the contents of `backend/database/init_database.sql` and run it in the MySQL console
+2. Go to "Data" or "Query" tab
+3. Copy the contents of `backend/database/init_database_railway.sql`
+4. Paste and execute in the MySQL console
+
+**Option B: Use Step-by-Step Commands**
+
+If Option A fails, follow the step-by-step guide in `backend/database/init_step_by_step.md`
+
+**Option C: Use Python Script (If Railway provides shell access)**
+
+```bash
+cd backend
+python init_db.py
+```
+
+This will automatically:
+- Create the database
+- Create all tables
+- Insert sample data
+- Verify everything worked
+
+**Why the original file fails:**
+- Missing `CREATE DATABASE IF NOT EXISTS`
+- No `IF NOT EXISTS` on CREATE TABLE statements
+- Uses regular `INSERT` instead of `INSERT IGNORE`
+- Railway console may not support `USE database;` statement
 
 #### Step 6: Wait for Redeploy
 
