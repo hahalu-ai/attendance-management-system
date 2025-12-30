@@ -1,4 +1,4 @@
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, jsonify
 from .config import Config
 import os
 
@@ -6,6 +6,28 @@ def create_app():
     """Application factory pattern"""
     app = Flask(__name__, static_folder='../../frontend')
     app.config.from_object(Config)
+
+    # Add health check endpoint
+    @app.route('/health')
+    def health_check():
+        return jsonify({
+            "status": "ok",
+            "message": "Application is running"
+        }), 200
+
+    # Add debug endpoint to check configuration
+    @app.route('/debug-config')
+    def debug_config():
+        import os
+        return jsonify({
+            "DB_HOST": os.getenv('DB_HOST', 'NOT SET'),
+            "DB_PORT": os.getenv('DB_PORT', 'NOT SET'),
+            "DB_NAME": os.getenv('DB_NAME', 'NOT SET'),
+            "DB_USER": os.getenv('DB_USER', 'NOT SET'),
+            "DB_PASSWORD": "***" if os.getenv('DB_PASSWORD') else 'NOT SET',
+            "PORT": os.getenv('PORT', 'NOT SET'),
+            "HOST": os.getenv('HOST', 'NOT SET')
+        }), 200
 
     # Register blueprints
     from .api.auth import auth_bp
