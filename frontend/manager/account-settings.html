@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manager Account Settings</title>
+    <title>管理员账户设置</title>
     <link rel="stylesheet" href="../css/main.css">
     <style>
         .danger-zone {
@@ -47,63 +47,63 @@
 <body>
     <div class="container">
         <header class="header">
-            <h1>Account Settings</h1>
+            <h1>账户设置</h1>
             <div id="user-info" class="user-info"></div>
         </header>
 
         <div id="settings-section" class="section">
             <div class="card">
-                <h2>Profile Information</h2>
+                <h2>个人信息</h2>
                 <div id="profile-info" class="profile-info"></div>
-                <a href="portal.html" class="btn btn-secondary" style="margin-top: 15px;">Back to Portal</a>
+                <a href="portal.html" class="btn btn-secondary" style="margin-top: 15px;">返回门户</a>
             </div>
 
             <div class="card">
-                <h2>Change Password</h2>
+                <h2>更改密码</h2>
                 <form id="password-form">
                     <div class="form-group">
-                        <label for="current-password">Current Password:</label>
+                        <label for="current-password">当前密码：</label>
                         <input type="password" id="current-password" required>
                     </div>
                     <div class="form-group">
-                        <label for="new-password">New Password:</label>
+                        <label for="new-password">新密码：</label>
                         <input type="password" id="new-password" required minlength="6">
-                        <small>Minimum 6 characters</small>
+                        <small>至少6个字符</small>
                     </div>
                     <div class="form-group">
-                        <label for="confirm-new-password">Confirm New Password:</label>
+                        <label for="confirm-new-password">确认新密码：</label>
                         <input type="password" id="confirm-new-password" required>
                     </div>
-                    <button type="submit" class="btn btn-primary">Change Password</button>
-                    <button type="button" id="cancel-password-btn" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">更改密码</button>
+                    <button type="button" id="cancel-password-btn" class="btn btn-secondary">取消</button>
                 </form>
             </div>
 
             <div class="card danger-zone">
-                <h3>Danger Zone</h3>
+                <h3>危险区域</h3>
                 <div class="info-box">
-                    <p><strong>Warning:</strong> Account deletion is permanent and cannot be undone.</p>
-                    <p>All your data including time entries, QR requests, and manager assignments will be permanently deleted.</p>
+                    <p><strong>警告：</strong>账户删除是永久性的，无法撤销。</p>
+                    <p>包括时间记录、二维码请求和管理员分配在内的所有数据都将被永久删除。</p>
                 </div>
 
                 <div id="deletion-check"></div>
 
-                <button id="show-delete-btn" class="btn btn-danger">Delete My Account</button>
+                <button id="show-delete-btn" class="btn btn-danger">删除我的账户</button>
 
                 <div id="delete-form" style="display: none; margin-top: 20px;">
-                    <h4>Confirm Account Deletion</h4>
+                    <h4>确认账户删除</h4>
                     <div class="form-group">
-                        <label for="delete-password">Enter your password to confirm:</label>
+                        <label for="delete-password">输入您的密码以确认：</label>
                         <input type="password" id="delete-password" required>
                     </div>
                     <div class="form-group">
                         <label>
                             <input type="checkbox" id="confirm-checkbox">
-                            I understand that this action is permanent and cannot be undone
+                            我理解此操作是永久性的，无法撤销
                         </label>
                     </div>
-                    <button id="confirm-delete-btn" class="btn btn-danger">Permanently Delete Account</button>
-                    <button id="cancel-delete-btn" class="btn btn-secondary">Cancel</button>
+                    <button id="confirm-delete-btn" class="btn btn-danger">永久删除账户</button>
+                    <button id="cancel-delete-btn" class="btn btn-secondary">取消</button>
                 </div>
             </div>
         </div>

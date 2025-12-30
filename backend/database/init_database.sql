@@ -1,7 +1,7 @@
 -- Attendance Management System Database Schema
--- Database: practice_db
+-- Database: attendance_system
 
-USE practice_db;
+USE attendance_system;
 
 -- =============================================
 -- Table 1: Users
@@ -101,11 +101,12 @@ CREATE TABLE qr_requests (
 -- Sample Data (Optional - for testing)
 -- =============================================
 
--- Insert sample users
+-- Insert sample users (default password: "password!" for all users)
+-- Password hash: SHA256 of "password!"
 INSERT INTO users (username, display_name, email, password, user_level) VALUES
-('ylin', 'Yuchen Lin', 'yuchen.lin@example.com', '$2y$10$example_hashed_password', 'Manager'),
-('xlu', 'Xuanyu Lu', 'xuanyu.lu@example.com', '$2y$10$example_hashed_password', 'Contractor'),
-('jsmith', 'John Smith', 'john.smith@example.com', '$2y$10$example_hashed_password', 'Contractor');
+('ylin', 'Yuchen Lin', 'yuchen.lin@example.com', 'f82a7d02e8f0a728b7c3e958c278745cb224d3d7b2e3b84c0ecafc5511fdbdb7', 'Manager'),
+('xlu', 'Xuanyu Lu', 'xuanyu.lu@example.com', 'f82a7d02e8f0a728b7c3e958c278745cb224d3d7b2e3b84c0ecafc5511fdbdb7', 'Contractor'),
+('jsmith', 'John Smith', 'john.smith@example.com', 'f82a7d02e8f0a728b7c3e958c278745cb224d3d7b2e3b84c0ecafc5511fdbdb7', 'Contractor');
 
 -- Assign contractors to manager
 INSERT INTO manager_assignments (manager_username, contractor_username) VALUES

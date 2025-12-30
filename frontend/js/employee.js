@@ -55,12 +55,12 @@ async function handleLogin(e) {
             currentUser = data.user;
             sessionStorage.setItem('user', JSON.stringify(currentUser));
             showDashboard();
-            showMessage('Login successful!', 'success');
+            showMessage('登录成功！', 'success');
         } else {
-            showMessage(data.error || 'Login failed', 'error');
+            showMessage(data.error || '登录失败', 'error');
         }
     } catch (error) {
-        showMessage('Connection error: ' + error.message, 'error');
+        showMessage('连接错误：' + error.message, 'error');
     }
 }
 
@@ -68,7 +68,7 @@ function showDashboard() {
     document.getElementById('login-section').style.display = 'none';
     document.getElementById('dashboard-section').style.display = 'block';
     document.getElementById('user-info').innerHTML = `
-        Logged in as: <strong>${currentUser.display_name}</strong> (${currentUser.username})
+        已登录为：<strong>${currentUser.display_name}</strong> (${currentUser.username})
     `;
     loadTimeEntries();
 }
@@ -87,10 +87,10 @@ async function handleCheckIn() {
             showMessage(data.message, 'success');
             loadTimeEntries();
         } else {
-            showMessage(data.error || 'Check-in failed', 'error');
+            showMessage(data.error || '签到失败', 'error');
         }
     } catch (error) {
-        showMessage('Connection error: ' + error.message, 'error');
+        showMessage('连接错误：' + error.message, 'error');
     }
 }
 
@@ -108,10 +108,10 @@ async function handleCheckOut() {
             showMessage(data.message, 'success');
             loadTimeEntries();
         } else {
-            showMessage(data.error || 'Check-out failed', 'error');
+            showMessage(data.error || '签退失败', 'error');
         }
     } catch (error) {
-        showMessage('Connection error: ' + error.message, 'error');
+        showMessage('连接错误：' + error.message, 'error');
     }
 }
 
@@ -125,10 +125,10 @@ async function loadTimeEntries() {
         if (response.ok) {
             displayTimeEntries(data.entries);
         } else {
-            showMessage(data.error || 'Failed to load entries', 'error');
+            showMessage(data.error || '加载记录失败', 'error');
         }
     } catch (error) {
-        showMessage('Connection error: ' + error.message, 'error');
+        showMessage('连接错误：' + error.message, 'error');
     }
 }
 
@@ -136,7 +136,7 @@ function displayTimeEntries(entries) {
     const container = document.getElementById('entries-list');
 
     if (!entries || entries.length === 0) {
-        container.innerHTML = '<p>No time entries found.</p>';
+        container.innerHTML = '<p>未找到时间记录。</p>';
         return;
     }
 
@@ -144,10 +144,10 @@ function displayTimeEntries(entries) {
         <table>
             <thead>
                 <tr>
-                    <th>Check In</th>
-                    <th>Check Out</th>
-                    <th>Status</th>
-                    <th>Approved By</th>
+                    <th>签到</th>
+                    <th>签退</th>
+                    <th>状态</th>
+                    <th>批准人</th>
                 </tr>
             </thead>
             <tbody>
@@ -159,7 +159,7 @@ function displayTimeEntries(entries) {
                 <td>${formatDateTime(entry.in_time)}</td>
                 <td>${formatDateTime(entry.out_time)}</td>
                 <td><span class="status-badge status-${entry.status.toLowerCase()}">${entry.status}</span></td>
-                <td>${entry.approved_by || 'N/A'}</td>
+                <td>${entry.approved_by || '无'}</td>
             </tr>
         `;
     });
@@ -171,7 +171,7 @@ function displayTimeEntries(entries) {
 async function getMonthlySummary() {
     const monthValue = document.getElementById('summary-month').value;
     if (!monthValue) {
-        showMessage('Please select a month', 'error');
+        showMessage('请选择一个月', 'error');
         return;
     }
 
@@ -186,10 +186,10 @@ async function getMonthlySummary() {
         if (response.ok) {
             displayMonthlySummary(data);
         } else {
-            showMessage(data.error || 'Failed to load summary', 'error');
+            showMessage(data.error || '加载摘要失败', 'error');
         }
     } catch (error) {
-        showMessage('Connection error: ' + error.message, 'error');
+        showMessage('连接错误：' + error.message, 'error');
     }
 }
 
@@ -199,9 +199,9 @@ function displayMonthlySummary(data) {
 
     let html = `
         <div class="summary-stats">
-            <p><strong>Days Worked:</strong> ${summary.days_worked} / ${summary.expected_workdays}</p>
-            <p><strong>Total Hours:</strong> ${summary.total_hours}</p>
-            <p><strong>Full Attendance:</strong> ${summary.is_full_attendance ? 'Yes' : 'No'}</p>
+            <p><strong>工作天数：</strong> ${summary.days_worked} / ${summary.expected_workdays}</p>
+            <p><strong>总工时：</strong> ${summary.total_hours}</p>
+            <p><strong>全勤：</strong> ${summary.is_full_attendance ? '是' : '否'}</p>
         </div>
     `;
 
@@ -214,7 +214,7 @@ function handleLogout() {
     document.getElementById('dashboard-section').style.display = 'none';
     document.getElementById('login-section').style.display = 'block';
     document.getElementById('login-form').reset();
-    showMessage('Logged out successfully', 'success');
+    showMessage('登出成功', 'success');
 }
 
 function showMessage(message, type = 'success') {
@@ -229,9 +229,9 @@ function showMessage(message, type = 'success') {
 }
 
 function formatDateTime(dateTimeString) {
-    if (!dateTimeString) return 'N/A';
+    if (!dateTimeString) return '无';
     const date = new Date(dateTimeString);
-    return date.toLocaleString('en-US', {
+    return date.toLocaleString('zh-CN', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',

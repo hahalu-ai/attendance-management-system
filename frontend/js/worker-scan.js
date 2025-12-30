@@ -56,9 +56,9 @@ async function startScanning() {
         );
 
         isScanning = true;
-        showMessage('Camera started. Point at QR code to scan.', 'success');
+        showMessage('相机已启动。将其对准二维码进行扫描。', 'success');
     } catch (error) {
-        showMessage('Error starting camera: ' + error.message, 'error');
+        showMessage('启动相机时出错：' + error.message, 'error');
         console.error('Camera error:', error);
 
         // Fallback to manual entry
@@ -66,7 +66,7 @@ async function startScanning() {
         document.getElementById('start-scan-btn').style.display = 'inline-block';
         document.getElementById('stop-scan-btn').style.display = 'none';
 
-        showMessage('Camera not available. Please use manual entry.', 'error');
+        showMessage('相机不可用。请使用手动输入。', 'error');
         switchTab('manual');
     }
 }
@@ -105,7 +105,7 @@ async function submitManualToken() {
     const token = document.getElementById('manual-token').value.trim();
 
     if (!token) {
-        showMessage('Please enter a token', 'error');
+        showMessage('请输入令牌', 'error');
         return;
     }
 
@@ -113,7 +113,7 @@ async function submitManualToken() {
 }
 
 async function verifyQRCode(token) {
-    showMessage('Verifying QR code...', 'success');
+    showMessage('正在验证二维码...', 'success');
 
     try {
         const response = await fetch(`${API_BASE_URL}/attendance/qr/verify`, {
@@ -130,7 +130,7 @@ async function verifyQRCode(token) {
             showResult(false, data);
         }
     } catch (error) {
-        showResult(false, { error: 'Connection error: ' + error.message });
+        showResult(false, { error: '连接错误：' + error.message });
     }
 }
 
@@ -148,22 +148,22 @@ function showResult(success, data) {
 
     if (success) {
         resultIcon.innerHTML = '<div class="success-icon">✓</div>';
-        resultTitle.textContent = 'Success!';
-        resultMessage.textContent = data.message || 'Action completed successfully';
+        resultTitle.textContent = '成功！';
+        resultMessage.textContent = data.message || '操作成功完成';
         resultDetails.innerHTML = `
-            <p><strong>Worker:</strong> ${data.worker_username}</p>
-            <p><strong>Action:</strong> ${data.action}</p>
-            <p><strong>Time:</strong> ${formatDateTime(data.timestamp)}</p>
+            <p><strong>员工：</strong> ${data.worker_username}</p>
+            <p><strong>操作：</strong> ${data.action}</p>
+            <p><strong>时间：</strong> ${formatDateTime(data.timestamp)}</p>
         `;
-        showMessage('Action completed successfully!', 'success');
+        showMessage('操作成功完成！', 'success');
     } else {
         resultIcon.innerHTML = '<div class="error-icon">✗</div>';
-        resultTitle.textContent = 'Error';
-        resultMessage.textContent = data.error || 'Failed to verify QR code';
+        resultTitle.textContent = '错误';
+        resultMessage.textContent = data.error || '验证二维码失败';
         resultDetails.innerHTML = `
-            <p>Please try again or contact your manager.</p>
+            <p>请重试或联系您的管理员。</p>
         `;
-        showMessage(data.error || 'Verification failed', 'error');
+        showMessage(data.error || '验证失败', 'error');
     }
 
     resultDisplay.style.display = 'block';
@@ -197,9 +197,9 @@ function showMessage(message, type = 'success') {
 }
 
 function formatDateTime(dateTimeString) {
-    if (!dateTimeString) return 'N/A';
+    if (!dateTimeString) return '无';
     const date = new Date(dateTimeString);
-    return date.toLocaleString('en-US', {
+    return date.toLocaleString('zh-CN', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',

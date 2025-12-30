@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Management - Manager Portal</title>
+    <title>用户管理 - 管理员门户</title>
     <link rel="stylesheet" href="../css/main.css">
     <style>
         .user-table {
@@ -94,37 +94,37 @@
 <body>
     <div class="container">
         <header class="header">
-            <h1>User Management</h1>
-            <p class="subtitle">View and manage all users</p>
+            <h1>用户管理</h1>
+            <p class="subtitle">查看和管理所有用户</p>
             <div id="user-info" class="user-info"></div>
         </header>
 
         <div id="management-section" class="section">
             <div class="actions">
-                <a href="portal.html" class="btn btn-secondary">Back to Portal</a>
-                <a href="../register.html" class="btn btn-primary">Create New User</a>
-                <button id="refresh-btn" class="btn btn-primary">Refresh List</button>
+                <a href="portal.html" class="btn btn-secondary">返回门户</a>
+                <a href="../register.html" class="btn btn-primary">创建新用户</a>
+                <button id="refresh-btn" class="btn btn-primary">刷新列表</button>
             </div>
 
             <div class="card">
-                <h2>All Users</h2>
+                <h2>所有用户</h2>
 
                 <div class="user-count" id="user-count">
-                    Loading users...
+                    正在加载用户...
                 </div>
 
                 <div class="filters">
                     <label>
-                        Filter by Role:
+                        按角色筛选：
                         <select id="role-filter">
-                            <option value="all">All Users</option>
-                            <option value="Manager">Managers Only</option>
-                            <option value="Contractor">Contractors Only</option>
+                            <option value="all">所有用户</option>
+                            <option value="Manager">仅管理员</option>
+                            <option value="Contractor">仅承包商</option>
                         </select>
                     </label>
                     <label>
-                        Search:
-                        <input type="text" id="search-input" placeholder="Search by name or email...">
+                        搜索：
+                        <input type="text" id="search-input" placeholder="按姓名或电子邮件搜索...">
                     </label>
                 </div>
 
@@ -132,17 +132,17 @@
                     <table class="user-table">
                         <thead>
                             <tr>
-                                <th>Username</th>
-                                <th>Display Name</th>
-                                <th>Email</th>
-                                <th>Role</th>
-                                <th>Created</th>
-                                <th>Actions</th>
+                                <th>用户名</th>
+                                <th>显示名称</th>
+                                <th>电子邮件</th>
+                                <th>角色</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
                             </tr>
                         </thead>
                         <tbody id="users-table-body">
                             <tr>
-                                <td colspan="6" style="text-align: center;">Loading users...</td>
+                                <td colspan="6" style="text-align: center;">正在加载用户...</td>
                             </tr>
                         </tbody>
                     </table>

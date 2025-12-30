@@ -1,35 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create New Account - Attendance Management</title>
+    <title>创建新账户 - 考勤管理</title>
     <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
     <div class="container">
         <header class="header">
-            <h1>Create New Account</h1>
-            <p class="subtitle">Manager-only registration</p>
+            <h1>创建新账户</h1>
+            <p class="subtitle">仅限管理员注册</p>
             <div id="user-info" class="user-info"></div>
         </header>
 
         <!-- Manager Login Section -->
         <div id="login-section" class="section">
             <div class="card">
-                <h2>Manager Login Required</h2>
-                <p>Only managers can create new accounts. Please log in to continue.</p>
+                <h2>需要管理员登录</h2>
+                <p>只有管理员可以创建新账户。请登录以继续。</p>
                 <form id="manager-login-form">
                     <div class="form-group">
-                        <label for="manager-username">Manager Username:</label>
+                        <label for="manager-username">管理员用户名：</label>
                         <input type="text" id="manager-username" name="username" required>
                     </div>
                     <div class="form-group">
-                        <label for="manager-password">Manager Password:</label>
+                        <label for="manager-password">管理员密码：</label>
                         <input type="password" id="manager-password" name="password" required>
                     </div>
-                    <button type="submit" class="btn btn-primary">Login</button>
-                    <a href="index.html" class="btn btn-secondary" style="margin-left: 10px;">Back to Home</a>
+                    <button type="submit" class="btn btn-primary">登录</button>
+                    <a href="index.html" class="btn btn-secondary" style="margin-left: 10px;">返回主页</a>
                 </form>
             </div>
         </div>
@@ -37,49 +37,49 @@
         <!-- Registration Form Section -->
         <div id="registration-section" class="section" style="display: none;">
             <div class="card">
-                <h2>New User Registration</h2>
+                <h2>新用户注册</h2>
                 <form id="registration-form">
                     <div class="form-group">
-                        <label for="username">Username:</label>
+                        <label for="username">用户名：</label>
                         <input type="text" id="username" name="username" required
                                pattern="[a-zA-Z0-9_]{3,50}"
-                               title="3-50 characters, letters, numbers, underscore only">
-                        <small>3-50 characters, letters, numbers, and underscores only</small>
+                               title="仅限3-50个字符，字母、数字和下划线">
+                        <small>仅限3-50个字符，字母、数字和下划线</small>
                     </div>
 
                     <div class="form-group">
-                        <label for="display-name">Display Name:</label>
+                        <label for="display-name">显示名称：</label>
                         <input type="text" id="display-name" name="display_name" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="email">Email:</label>
+                        <label for="email">电子邮件：</label>
                         <input type="email" id="email" name="email" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="password">Password:</label>
+                        <label for="password">密码：</label>
                         <input type="password" id="password" name="password" required minlength="6">
-                        <small>Minimum 6 characters</small>
+                        <small>至少6个字符</small>
                     </div>
 
                     <div class="form-group">
-                        <label for="confirm-password">Confirm Password:</label>
+                        <label for="confirm-password">确认密码：</label>
                         <input type="password" id="confirm-password" name="confirm_password" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="user-level">User Level:</label>
+                        <label for="user-level">用户级别：</label>
                         <select id="user-level" name="user_level" required>
-                            <option value="Contractor">Contractor</option>
-                            <option value="Manager">Manager</option>
+                            <option value="Contractor">承包商</option>
+                            <option value="Manager">管理员</option>
                         </select>
                     </div>
 
                     <div class="actions">
-                        <button type="submit" class="btn btn-primary">Create Account</button>
-                        <button type="button" id="cancel-btn" class="btn btn-secondary">Clear Form</button>
-                        <button type="button" id="logout-btn" class="btn btn-danger">Logout</button>
+                        <button type="submit" class="btn btn-primary">创建账户</button>
+                        <button type="button" id="cancel-btn" class="btn btn-secondary">清除表单</button>
+                        <button type="button" id="logout-btn" class="btn btn-danger">登出</button>
                     </div>
                 </form>
             </div>

@@ -54,8 +54,8 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     read -sp "MySQL Password: " DB_PASSWORD
     echo ""
 
-    read -p "Database Name (default: practice_db): " DB_NAME
-    DB_NAME=${DB_NAME:-practice_db}
+    read -p "Database Name (default: attendance_system): " DB_NAME
+    DB_NAME=${DB_NAME:-attendance_system}
 
     # Create database
     echo "Creating database..."
@@ -68,7 +68,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo "✓ Database setup complete!"
 else
     echo "⚠️  Skipping database setup. You can run the SQL file manually:"
-    echo "   mysql -u root -p practice_db < backend/database/init_database.sql"
+    echo "   mysql -u root -p attendance_system < backend/database/init_database.sql"
 fi
 
 # Step 3: Verify frontend

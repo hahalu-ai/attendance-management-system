@@ -16,9 +16,9 @@ function showMessage(message, type = 'success') {
 }
 
 function formatDateTime(dateTimeString) {
-    if (!dateTimeString) return 'N/A';
+    if (!dateTimeString) return '无';
     const date = new Date(dateTimeString);
-    return date.toLocaleString('en-US', {
+    return date.toLocaleString('zh-CN', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
@@ -28,9 +28,9 @@ function formatDateTime(dateTimeString) {
 }
 
 function formatDate(dateString) {
-    if (!dateString) return 'N/A';
+    if (!dateString) return '无';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString('zh-CN', {
         year: 'numeric',
         month: 'short',
         day: 'numeric'

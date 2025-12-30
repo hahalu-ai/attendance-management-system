@@ -13,7 +13,7 @@ function checkSession() {
         if (currentManager.user_level === 'Manager') {
             showRegistrationForm();
         } else {
-            showMessage('Access denied. Only managers can create accounts.', 'error');
+            showMessage('访问被拒绝。只有管理员可以创建账户。', 'error');
         }
     }
 }
@@ -44,18 +44,18 @@ async function handleManagerLogin(e) {
             currentManager = data.user;
 
             if (currentManager.user_level !== 'Manager') {
-                showMessage('Access denied. Only managers can create accounts.', 'error');
+                showMessage('访问被拒绝。只有管理员可以创建账户。', 'error');
                 return;
             }
 
             sessionStorage.setItem('user', JSON.stringify(currentManager));
             showRegistrationForm();
-            showMessage('Manager authenticated successfully', 'success');
+            showMessage('管理员身份验证成功', 'success');
         } else {
-            showMessage(data.error || 'Login failed', 'error');
+            showMessage(data.error || '登录失败', 'error');
         }
     } catch (error) {
-        showMessage('Connection error: ' + error.message, 'error');
+        showMessage('连接错误：' + error.message, 'error');
     }
 }
 
@@ -63,7 +63,7 @@ function showRegistrationForm() {
     document.getElementById('login-section').style.display = 'none';
     document.getElementById('registration-section').style.display = 'block';
     document.getElementById('user-info').innerHTML = `
-        Manager: <strong>${currentManager.display_name}</strong> (${currentManager.username})
+        管理员：<strong>${currentManager.display_name}</strong> (${currentManager.username})
     `;
 }
 
@@ -79,7 +79,7 @@ async function handleRegistration(e) {
 
     // Validate passwords match
     if (password !== confirmPassword) {
-        showMessage('Passwords do not match', 'error');
+        showMessage('密码不匹配', 'error');
         return;
     }
 
@@ -100,22 +100,22 @@ async function handleRegistration(e) {
         const data = await response.json();
 
         if (response.ok) {
-            showMessage(`Account created successfully for ${username}!`, 'success');
+            showMessage(`成功为 ${username} 创建账户！`, 'success');
             document.getElementById('registration-form').reset();
 
             // Ask if manager wants to assign contractor
             if (userLevel === 'Contractor') {
                 setTimeout(() => {
-                    if (confirm(`Would you like to assign ${username} to yourself as their manager?`)) {
+                    if (confirm(`您要将 ${username} 分配给自己作为其管理员吗？`)) {
                         assignContractorToSelf(username);
                     }
                 }, 1000);
             }
         } else {
-            showMessage(data.error || 'Registration failed', 'error');
+            showMessage(data.error || '注册失败', 'error');
         }
     } catch (error) {
-        showMessage('Connection error: ' + error.message, 'error');
+        showMessage('连接错误：' + error.message, 'error');
     }
 }
 
@@ -133,9 +133,9 @@ async function assignContractorToSelf(contractorUsername) {
         const data = await response.json();
 
         if (response.ok) {
-            showMessage(`${contractorUsername} assigned to you successfully`, 'success');
+            showMessage(`${contractorUsername} 已成功分配给您`, 'success');
         } else {
-            showMessage(`Note: ${data.error || 'Assignment failed'}`, 'error');
+            showMessage(`注意：${data.error || '分配失败'}`, 'error');
         }
     } catch (error) {
         console.error('Assignment error:', error);
@@ -144,7 +144,7 @@ async function assignContractorToSelf(contractorUsername) {
 
 function resetForm() {
     document.getElementById('registration-form').reset();
-    showMessage('Form cleared', 'success');
+    showMessage('表单已清除', 'success');
 }
 
 function handleLogout() {
@@ -153,7 +153,7 @@ function handleLogout() {
     document.getElementById('registration-section').style.display = 'none';
     document.getElementById('login-section').style.display = 'block';
     document.getElementById('manager-login-form').reset();
-    showMessage('Logged out successfully', 'success');
+    showMessage('登出成功', 'success');
 }
 
 function showMessage(message, type = 'success') {

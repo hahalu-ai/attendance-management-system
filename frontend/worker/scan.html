@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Worker QR Scanner</title>
+    <title>员工二维码扫描器</title>
     <link rel="stylesheet" href="../css/main.css">
     <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
@@ -90,41 +90,41 @@
 <body>
     <div class="container">
         <header class="header">
-            <h1>Worker QR Scanner</h1>
-            <p class="subtitle">Scan QR code to confirm check-in/check-out</p>
+            <h1>员工二维码扫描器</h1>
+            <p class="subtitle">扫描二维码以确认签到/签退</p>
         </header>
 
         <div class="scanner-container">
             <div class="scan-section">
                 <div class="tabs">
-                    <button class="tab active" onclick="switchTab('camera')">Camera Scan</button>
-                    <button class="tab" onclick="switchTab('manual')">Manual Entry</button>
+                    <button class="tab active" onclick="switchTab('camera')">相机扫描</button>
+                    <button class="tab" onclick="switchTab('manual')">手动输入</button>
                 </div>
 
                 <!-- Camera Scan Tab -->
                 <div id="camera-tab" class="tab-content active">
-                    <h2>Scan QR Code</h2>
-                    <p>Point your camera at the QR code displayed by your manager</p>
+                    <h2>扫描二维码</h2>
+                    <p>将相机对准管理员显示的二维码</p>
 
                     <div id="qr-reader" style="display: none;"></div>
 
                     <div style="margin-top: 20px; text-align: center;">
-                        <button id="start-scan-btn" class="btn btn-primary">Start Camera</button>
-                        <button id="stop-scan-btn" class="btn btn-secondary" style="display: none;">Stop Camera</button>
+                        <button id="start-scan-btn" class="btn btn-primary">启动相机</button>
+                        <button id="stop-scan-btn" class="btn btn-secondary" style="display: none;">停止相机</button>
                     </div>
                 </div>
 
                 <!-- Manual Entry Tab -->
                 <div id="manual-tab" class="tab-content">
-                    <h2>Manual Token Entry</h2>
-                    <p>If camera scanning doesn't work, enter the token manually</p>
+                    <h2>手动令牌输入</h2>
+                    <p>如果相机扫描不起作用，请手动输入令牌</p>
 
                     <div class="form-group">
-                        <label for="manual-token">Token:</label>
-                        <input type="text" id="manual-token" class="form-control" placeholder="Enter QR code token">
+                        <label for="manual-token">令牌：</label>
+                        <input type="text" id="manual-token" class="form-control" placeholder="输入二维码令牌">
                     </div>
 
-                    <button id="submit-token-btn" class="btn btn-primary">Submit</button>
+                    <button id="submit-token-btn" class="btn btn-primary">提交</button>
                 </div>
 
                 <!-- Result Display -->
@@ -134,7 +134,7 @@
                     <p id="result-message"></p>
                     <div id="result-details"></div>
 
-                    <button id="scan-another-btn" class="btn btn-primary scan-another-btn">Scan Another</button>
+                    <button id="scan-another-btn" class="btn btn-primary scan-another-btn">再次扫描</button>
                 </div>
             </div>
         </div>

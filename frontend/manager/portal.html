@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manager Portal - QR Check-in/out</title>
+    <title>管理员门户 - 二维码签到/签退</title>
     <link rel="stylesheet" href="../css/main.css">
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
@@ -72,26 +72,26 @@
 <body>
     <div class="container">
         <header class="header">
-            <h1>Manager Portal</h1>
-            <p class="subtitle">QR Code-based Worker Check-in/Check-out</p>
+            <h1>管理员门户</h1>
+            <p class="subtitle">基于二维码的员工签到/签退</p>
             <div id="user-info" class="user-info"></div>
         </header>
 
         <!-- Login Section -->
         <div id="login-section" class="section">
             <div class="card">
-                <h2>Manager Login</h2>
+                <h2>管理员登录</h2>
                 <form id="login-form">
                     <div class="form-group">
-                        <label for="username">Username:</label>
+                        <label for="username">用户名：</label>
                         <input type="text" id="username" name="username" required>
                     </div>
                     <div class="form-group">
-                        <label for="password">Password:</label>
+                        <label for="password">密码：</label>
                         <input type="password" id="password" name="password" required>
                     </div>
-                    <button type="submit" class="btn btn-primary">Login</button>
-                    <a href="../register.html" class="btn btn-secondary" style="margin-top: 10px; display: inline-block;">Create New Account</a>
+                    <button type="submit" class="btn btn-primary">登录</button>
+                    <a href="../register.html" class="btn btn-secondary" style="margin-top: 10px; display: inline-block;">创建新账户</a>
                 </form>
             </div>
         </div>
@@ -99,54 +99,54 @@
         <!-- Dashboard Section -->
         <div id="dashboard-section" class="section" style="display: none;">
             <div class="actions">
-                <button id="refresh-workers-btn" class="btn btn-primary">Refresh Workers</button>
-                <button id="view-pending-btn" class="btn btn-warning">Pending Approvals</button>
-                <button id="user-management-btn" class="btn btn-primary">User Management</button>
-                <button id="account-settings-btn" class="btn btn-secondary">Account Settings</button>
-                <button id="logout-btn" class="btn btn-secondary">Logout</button>
+                <button id="refresh-workers-btn" class="btn btn-primary">刷新员工列表</button>
+                <button id="view-pending-btn" class="btn btn-warning">待审批</button>
+                <button id="user-management-btn" class="btn btn-primary">用户管理</button>
+                <button id="account-settings-btn" class="btn btn-secondary">账户设置</button>
+                <button id="logout-btn" class="btn btn-secondary">登出</button>
             </div>
 
             <!-- Worker Selection & QR Generation -->
             <div id="qr-section" class="card">
-                <h2>Generate QR Code for Worker Check-in/out</h2>
+                <h2>为员工生成签到/签退二维码</h2>
                 <div class="form-group">
-                    <label for="worker-select">Select Worker:</label>
+                    <label for="worker-select">选择员工：</label>
                     <select id="worker-select" class="form-control">
-                        <option value="">-- Select a worker --</option>
+                        <option value="">-- 选择一名员工 --</option>
                     </select>
                 </div>
 
                 <div id="worker-status" class="worker-status" style="display: none;">
-                    <p><strong>Selected:</strong> <span id="selected-worker-name"></span></p>
-                    <p><strong>Current Status:</strong> <span id="worker-clock-status"></span></p>
+                    <p><strong>已选择：</strong> <span id="selected-worker-name"></span></p>
+                    <p><strong>当前状态：</strong> <span id="worker-clock-status"></span></p>
                 </div>
 
                 <div class="action-buttons" style="display: none;" id="action-buttons">
-                    <button id="generate-checkin-btn" class="btn btn-success">Generate Check-In QR</button>
-                    <button id="generate-checkout-btn" class="btn btn-warning">Generate Check-Out QR</button>
+                    <button id="generate-checkin-btn" class="btn btn-success">生成签到二维码</button>
+                    <button id="generate-checkout-btn" class="btn btn-warning">生成签退二维码</button>
                 </div>
 
                 <!-- QR Code Display -->
                 <div id="qr-display" class="qr-display" style="display: none;">
-                    <h3>QR Code Generated</h3>
-                    <p><strong>Worker:</strong> <span id="qr-worker-name"></span></p>
-                    <p><strong>Action:</strong> <span id="qr-action"></span></p>
-                    <p class="qr-timer"><strong>Expires in:</strong> <span id="qr-timer">5:00</span></p>
+                    <h3>二维码已生成</h3>
+                    <p><strong>员工：</strong> <span id="qr-worker-name"></span></p>
+                    <p><strong>操作：</strong> <span id="qr-action"></span></p>
+                    <p class="qr-timer"><strong>有效期：</strong> <span id="qr-timer">5:00</span></p>
 
                     <div id="qrcode" class="qr-code-container"></div>
 
                     <p class="qr-instructions">
-                        Worker should scan this QR code with their phone to confirm <strong><span id="qr-action-type"></span></strong>
+                        员工应用手机扫描此二维码以确认 <strong><span id="qr-action-type"></span></strong>
                     </p>
 
-                    <button id="cancel-qr-btn" class="btn btn-danger">Cancel / Generate New</button>
+                    <button id="cancel-qr-btn" class="btn btn-danger">取消 / 生成新码</button>
                 </div>
             </div>
 
             <!-- Pending Approvals -->
             <div id="pending-section" class="card">
-                <h2>Pending Approvals</h2>
-                <button id="refresh-pending-btn" class="btn btn-primary" style="margin-bottom: 15px;">Refresh</button>
+                <h2>待审批</h2>
+                <button id="refresh-pending-btn" class="btn btn-primary" style="margin-bottom: 15px;">刷新</button>
                 <div id="pending-content"></div>
             </div>
         </div>

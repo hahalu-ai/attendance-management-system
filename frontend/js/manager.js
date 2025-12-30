@@ -19,7 +19,7 @@ function checkSession() {
         if (currentUser.user_level === 'Manager') {
             showDashboard();
         } else {
-            showMessage('Access denied. Managers only.', 'error');
+            showMessage('访问被拒绝。仅限管理员。', 'error');
         }
     }
 }
@@ -61,18 +61,18 @@ async function handleLogin(e) {
             currentUser = data.user;
 
             if (currentUser.user_level !== 'Manager') {
-                showMessage('Access denied. Managers only.', 'error');
+                showMessage('访问被拒绝。仅限管理员。', 'error');
                 return;
             }
 
             sessionStorage.setItem('user', JSON.stringify(currentUser));
             showDashboard();
-            showMessage('Login successful!', 'success');
+            showMessage('登录成功！', 'success');
         } else {
-            showMessage(data.error || 'Login failed', 'error');
+            showMessage(data.error || '登录失败', 'error');
         }
     } catch (error) {
-        showMessage('Connection error: ' + error.message, 'error');
+        showMessage('连接错误：' + error.message, 'error');
     }
 }
 
@@ -80,7 +80,7 @@ function showDashboard() {
     document.getElementById('login-section').style.display = 'none';
     document.getElementById('dashboard-section').style.display = 'block';
     document.getElementById('user-info').innerHTML = `
-        Logged in as: <strong>${currentUser.display_name}</strong> (${currentUser.username})
+        已登录为：<strong>${currentUser.display_name}</strong> (${currentUser.username})
     `;
     loadWorkers();
     loadPendingApprovals();
@@ -97,16 +97,16 @@ async function loadWorkers() {
             workers = data.contractors || [];
             populateWorkerSelect();
         } else {
-            showMessage(data.error || 'Failed to load workers', 'error');
+            showMessage(data.error || '加载员工列表失败', 'error');
         }
     } catch (error) {
-        showMessage('Connection error: ' + error.message, 'error');
+        showMessage('连接错误：' + error.message, 'error');
     }
 }
 
 function populateWorkerSelect() {
     const select = document.getElementById('worker-select');
-    select.innerHTML = '<option value="">-- Select a worker --</option>';
+    select.innerHTML = '<option value="">-- 选择一名员工 --</option>';
 
     workers.forEach(worker => {
         const option = document.createElement('option');
@@ -143,12 +143,12 @@ async function handleWorkerSelection() {
 
             if (openEntry) {
                 document.getElementById('worker-clock-status').innerHTML =
-                    '<span class="status-clocked-in">Clocked In</span>';
+                    '<span class="status-clocked-in">已签到</span>';
                 document.getElementById('generate-checkin-btn').disabled = true;
                 document.getElementById('generate-checkout-btn').disabled = false;
             } else {
                 document.getElementById('worker-clock-status').innerHTML =
-                    '<span class="status-clocked-out">Clocked Out</span>';
+                    '<span class="status-clocked-out">已签退</span>';
                 document.getElementById('generate-checkin-btn').disabled = false;
                 document.getElementById('generate-checkout-btn').disabled = true;
             }
@@ -157,7 +157,7 @@ async function handleWorkerSelection() {
             document.getElementById('action-buttons').style.display = 'flex';
         }
     } catch (error) {
-        showMessage('Error checking worker status: ' + error.message, 'error');
+        showMessage('检查员工状态时出错：' + error.message, 'error');
     }
 }
 
@@ -165,7 +165,7 @@ async function generateQR(action) {
     const workerUsername = document.getElementById('worker-select').value;
 
     if (!workerUsername) {
-        showMessage('Please select a worker first', 'error');
+        showMessage('请先选择一名员工', 'error');
         return;
     }
 
@@ -184,12 +184,12 @@ async function generateQR(action) {
 
         if (response.ok) {
             displayQRCode(data);
-            showMessage(`QR code generated for ${action}`, 'success');
+            showMessage(`已为 ${action} 生成二维码`, 'success');
         } else {
-            showMessage(data.error || 'Failed to generate QR code', 'error');
+            showMessage(data.error || '生成二维码失败', 'error');
         }
     } catch (error) {
-        showMessage('Connection error: ' + error.message, 'error');
+        showMessage('连接错误：' + error.message, 'error');
     }
 }
 
@@ -239,7 +239,7 @@ function startQRTimer(seconds) {
 
         if (remaining <= 0) {
             clearInterval(qrTimer);
-            showMessage('QR code expired. Please generate a new one.', 'error');
+            showMessage('二维码已过期。请生成新码。', 'error');
             cancelQR();
         }
     }, 1000);
@@ -266,12 +266,12 @@ async function pollQRStatus(token) {
             if (response.ok) {
                 if (data.status === 'used') {
                     clearInterval(pollInterval);
-                    showMessage(`${data.action} completed successfully!`, 'success');
+                    showMessage(`${data.action} 成功完成！`, 'success');
                     cancelQR();
                     handleWorkerSelection(); // Refresh worker status
                 } else if (data.status === 'failed' || data.status === 'expired') {
                     clearInterval(pollInterval);
-                    showMessage(`QR code ${data.status}`, 'error');
+                    showMessage(`二维码 ${data.status}`, 'error');
                     cancelQR();
                 }
             }
@@ -306,10 +306,10 @@ async function loadPendingApprovals() {
         if (response.ok) {
             displayPendingApprovals(data.pending_entries || []);
         } else {
-            showMessage(data.error || 'Failed to load pending approvals', 'error');
+            showMessage(data.error || '加载待审批失败', 'error');
         }
     } catch (error) {
-        showMessage('Connection error: ' + error.message, 'error');
+        showMessage('连接错误：' + error.message, 'error');
     }
 }
 
@@ -317,7 +317,7 @@ function displayPendingApprovals(entries) {
     const container = document.getElementById('pending-content');
 
     if (!entries || entries.length === 0) {
-        container.innerHTML = '<p>No pending approvals</p>';
+        container.innerHTML = '<p>无待审批</p>';
         return;
     }
 
@@ -325,10 +325,10 @@ function displayPendingApprovals(entries) {
         <table>
             <thead>
                 <tr>
-                    <th>Worker</th>
-                    <th>Check In</th>
-                    <th>Check Out</th>
-                    <th>Actions</th>
+                    <th>员工</th>
+                    <th>签到</th>
+                    <th>签退</th>
+                    <th>操作</th>
                 </tr>
             </thead>
             <tbody>
@@ -341,8 +341,8 @@ function displayPendingApprovals(entries) {
                 <td>${formatDateTime(entry.in_time)}</td>
                 <td>${formatDateTime(entry.out_time)}</td>
                 <td>
-                    <button onclick="approveEntry(${entry.id}, 'Approved')" class="btn btn-success btn-sm">Approve</button>
-                    <button onclick="approveEntry(${entry.id}, 'Rejected')" class="btn btn-danger btn-sm">Reject</button>
+                    <button onclick="approveEntry(${entry.id}, 'Approved')" class="btn btn-success btn-sm">批准</button>
+                    <button onclick="approveEntry(${entry.id}, 'Rejected')" class="btn btn-danger btn-sm">拒绝</button>
                 </td>
             </tr>
         `;
@@ -370,10 +370,10 @@ async function approveEntry(entryId, status) {
             showMessage(data.message, 'success');
             loadPendingApprovals();
         } else {
-            showMessage(data.error || 'Approval failed', 'error');
+            showMessage(data.error || '审批失败', 'error');
         }
     } catch (error) {
-        showMessage('Connection error: ' + error.message, 'error');
+        showMessage('连接错误：' + error.message, 'error');
     }
 }
 
@@ -384,7 +384,7 @@ function handleLogout() {
     document.getElementById('dashboard-section').style.display = 'none';
     document.getElementById('login-section').style.display = 'block';
     document.getElementById('login-form').reset();
-    showMessage('Logged out successfully', 'success');
+    showMessage('登出成功', 'success');
 }
 
 function showMessage(message, type = 'success') {
@@ -399,9 +399,9 @@ function showMessage(message, type = 'success') {
 }
 
 function formatDateTime(dateTimeString) {
-    if (!dateTimeString) return 'N/A';
+    if (!dateTimeString) return '无';
     const date = new Date(dateTimeString);
-    return date.toLocaleString('en-US', {
+    return date.toLocaleString('zh-CN', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
