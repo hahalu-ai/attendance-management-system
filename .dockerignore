@@ -1,0 +1,44 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info
+dist
+build
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docs and archives
+docs/
+old_files/
+*.md
+!README.md
+
+# Backend specific
+backend/__pycache__/
+backend/.env
+backend/database/*.db
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
