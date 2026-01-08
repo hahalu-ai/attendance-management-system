@@ -4,13 +4,15 @@
 
 ### Option 1: Automatic Migration (Recommended)
 
-Add this to your Railway service's start command:
+**The Dockerfile now handles this automatically!** No manual start command needed.
+
+If you want to manually set it in Railway Settings → Deploy → Start Command:
 
 ```bash
-python backend/migrate_to_three_tier.py && python backend/run.py
+python migrate_to_three_tier.py && gunicorn run:app --bind 0.0.0.0:$PORT --workers 2 --timeout 60
 ```
 
-This will automatically run the migration before starting the server.
+Note: Since the Dockerfile sets WORKDIR to `/app/backend`, don't include `backend/` prefix.
 
 ### Option 2: Manual Migration via Railway CLI
 

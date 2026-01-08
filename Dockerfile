@@ -22,5 +22,5 @@ WORKDIR /app/backend
 # Expose port (Railway will provide this via $PORT)
 EXPOSE 5001
 
-# Start command - gunicorn will look for run:app in current directory
-CMD gunicorn run:app --bind 0.0.0.0:$PORT --workers 2 --timeout 60
+# Start command - run migration first, then start server
+CMD python migrate_to_three_tier.py && gunicorn run:app --bind 0.0.0.0:$PORT --workers 2 --timeout 60

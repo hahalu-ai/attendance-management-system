@@ -2,19 +2,9 @@
 
 ## ⚡ Super Quick Deployment (5 Minutes)
 
-### Step 1: Update Railway Start Command
+### Step 1: Push Your Code
 
-1. Go to your Railway project dashboard
-2. Click on your backend service
-3. Go to **Settings** tab
-4. Find **Deploy** section
-5. Set **Start Command** to:
-   ```bash
-   python backend/migrate_to_three_tier.py && python backend/run.py
-   ```
-6. Click **Save**
-
-### Step 2: Push Your Code
+**Good news!** The Dockerfile now handles everything automatically. No manual configuration needed!
 
 ```bash
 # From your project root directory
@@ -23,7 +13,7 @@ git commit -m "Implement three-tier system: Manager→Lead→Member"
 git push origin main
 ```
 
-### Step 3: Watch It Deploy!
+### Step 2: Watch It Deploy!
 
 1. Go back to Railway dashboard
 2. Watch the deployment logs
