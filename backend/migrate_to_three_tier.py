@@ -60,7 +60,11 @@ def check_migration_status(cursor):
         """)
         result = cursor.fetchone()
         if result:
-            enum_values = result[0]
+            # Handle both dictionary and tuple cursor results
+            if isinstance(result, dict):
+                enum_values = result.get('COLUMN_TYPE', '')
+            else:
+                enum_values = result[0] if result else ''
             has_three_tiers = 'Lead' in enum_values and 'Member' in enum_values
         else:
             has_three_tiers = False
@@ -73,6 +77,9 @@ def check_migration_status(cursor):
         }
     except Error as e:
         print(f"❌ Error checking migration status: {e}")
+        return {'is_migrated': False}
+    except Exception as e:
+        print(f"❌ Unexpected error in migration check: {e}")
         return {'is_migrated': False}
 
 def backup_tables(cursor, connection):
@@ -136,8 +143,9 @@ def update_contractors_to_leads(cursor, connection):
     print("🔄 Converting Contractors to Leads...")
 
     try:
-        cursor.execute("SELECT COUNT(*) FROM users WHERE user_level = 'Contractor'")
-        count = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) as count FROM users WHERE user_level = 'Contractor'")
+        result = cursor.fetchone()
+        count = result['count'] if isinstance(result, dict) else result[0]
 
         if count == 0:
             print("   ℹ️  No Contractors found, skipping...")
@@ -240,8 +248,10 @@ def migrate_manager_assignments(cursor, connection):
             return True
 
         # Check if data already migrated
-        cursor.execute("SELECT COUNT(*) FROM manager_lead_assignments")
-        if cursor.fetchone()[0] > 0:
+        cursor.execute("SELECT COUNT(*) as count FROM manager_lead_assignments")
+        result = cursor.fetchone()
+        count = result['count'] if isinstance(result, dict) else result[0]
+        if count > 0:
             print("   ℹ️  Data already migrated, skipping...")
             return True
 
@@ -364,12 +374,14 @@ def verify_migration(cursor):
             print(f"   - {user_level}: {count}")
 
         # Count assignments
-        cursor.execute("SELECT COUNT(*) FROM manager_lead_assignments")
-        manager_lead_count = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) as count FROM manager_lead_assignments")
+        result = cursor.fetchone()
+        manager_lead_count = result['count'] if isinstance(result, dict) else result[0]
         print(f"   - Manager-Lead assignments: {manager_lead_count}")
 
-        cursor.execute("SELECT COUNT(*) FROM lead_assignments")
-        lead_member_count = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) as count FROM lead_assignments")
+        result = cursor.fetchone()
+        lead_member_count = result['count'] if isinstance(result, dict) else result[0]
         print(f"   - Lead-Member assignments: {lead_member_count}")
 
         print("\n✅ Migration verification complete!")
@@ -438,8 +450,14 @@ def main():
 
     except Exception as e:
         print(f"\n❌ Unexpected error: {e}")
+        print(f"   Error type: {type(e).__name__}")
+        import traceback
+        print(f"   Traceback: {traceback.format_exc()}")
         if connection:
-            connection.rollback()
+            try:
+                connection.rollback()
+            except:
+                pass
         return 1
     finally:
         if connection and connection.is_connected():
