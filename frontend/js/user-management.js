@@ -1,8 +1,4 @@
-// Auto-detect environment: use Railway in production, localhost for development
-const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:5001/api'
-    : 'https://attendance-management-system-production-1f1a.up.railway.app/api';
-
+const API_BASE_URL = 'http://localhost:5001/api';
 let currentUser = null;
 let allUsers = [];
 let filteredUsers = [];

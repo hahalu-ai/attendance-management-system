@@ -1,10 +1,14 @@
 // Manager Portal JavaScript - Manages Leads (Super User)
 
+<<<<<<< HEAD
 // Auto-detect environment
 const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:5001/api'
     : 'https://attendance-management-system-production-1f1a.up.railway.app/api';
 
+=======
+const API_BASE_URL = 'http://localhost:5001/api';
+>>>>>>> parent of dd9b182 (f)
 let currentUser = null;
 let leads = [];
 
