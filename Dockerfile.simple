@@ -1,0 +1,19 @@
+FROM python:3.10-slim
+
+# Set working directory
+WORKDIR /app
+
+# Copy everything
+COPY . .
+
+# Install dependencies
+RUN pip install --no-cache-dir -r backend/requirements.txt
+
+# Change to backend directory
+WORKDIR /app/backend
+
+# Expose port
+EXPOSE 5001
+
+# Simple start - just run the server (migration can be done separately)
+CMD ["gunicorn", "run:app", "--bind", "0.0.0.0:${PORT:-5001}", "--workers", "2", "--timeout", "60"]
