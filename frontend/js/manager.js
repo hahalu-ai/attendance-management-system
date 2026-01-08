@@ -1,14 +1,12 @@
-// Manager Portal JavaScript with QR Code Functionality
+// Manager Portal JavaScript - Manages Leads (Super User)
 
-// Auto-detect environment: use Railway in production, localhost for development
+// Auto-detect environment
 const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:5001/api'
     : 'https://attendance-management-system-production-1f1a.up.railway.app/api';
 
 let currentUser = null;
-let workers = [];
-let qrTimer = null;
-let qrCode = null;
+let leads = [];
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -23,7 +21,7 @@ function checkSession() {
         if (currentUser.user_level === 'Manager') {
             showDashboard();
         } else {
-            showMessage('访问被拒绝。仅限管理员。', 'error');
+            showMessage('Access denied. Managers only.', 'error');
         }
     }
 }
@@ -31,11 +29,7 @@ function checkSession() {
 function setupEventListeners() {
     document.getElementById('login-form').addEventListener('submit', handleLogin);
     document.getElementById('logout-btn').addEventListener('click', handleLogout);
-    document.getElementById('worker-select').addEventListener('change', handleWorkerSelection);
-    document.getElementById('generate-checkin-btn').addEventListener('click', () => generateQR('check-in'));
-    document.getElementById('generate-checkout-btn').addEventListener('click', () => generateQR('check-out'));
-    document.getElementById('cancel-qr-btn').addEventListener('click', cancelQR);
-    document.getElementById('refresh-workers-btn').addEventListener('click', loadWorkers);
+    document.getElementById('refresh-leads-btn')?.addEventListener('click', loadLeads);
     document.getElementById('view-pending-btn').addEventListener('click', loadPendingApprovals);
     document.getElementById('refresh-pending-btn').addEventListener('click', loadPendingApprovals);
     document.getElementById('user-management-btn').addEventListener('click', () => {
@@ -65,18 +59,18 @@ async function handleLogin(e) {
             currentUser = data.user;
 
             if (currentUser.user_level !== 'Manager') {
-                showMessage('访问被拒绝。仅限管理员。', 'error');
+                showMessage('Access denied. Managers only.', 'error');
                 return;
             }
 
             sessionStorage.setItem('user', JSON.stringify(currentUser));
             showDashboard();
-            showMessage('登录成功！', 'success');
+            showMessage('Login successful!', 'success');
         } else {
-            showMessage(data.error || '登录失败', 'error');
+            showMessage(data.error || 'Login failed', 'error');
         }
     } catch (error) {
-        showMessage('连接错误：' + error.message, 'error');
+        showMessage('Connection error: ' + error.message, 'error');
     }
 }
 
@@ -84,236 +78,133 @@ function showDashboard() {
     document.getElementById('login-section').style.display = 'none';
     document.getElementById('dashboard-section').style.display = 'block';
     document.getElementById('user-info').innerHTML = `
-        已登录为：<strong>${currentUser.display_name}</strong> (${currentUser.username})
+        Logged in as: <strong>${currentUser.display_name}</strong> (${currentUser.username})
     `;
-    loadWorkers();
+    loadLeads();
     loadPendingApprovals();
 }
 
-async function loadWorkers() {
+async function loadLeads() {
     try {
         const response = await fetch(
-            `${API_BASE_URL}/users/${currentUser.username}/contractors`
+            `${API_BASE_URL}/users/manager/${currentUser.username}/leads`
         );
         const data = await response.json();
 
         if (response.ok) {
-            workers = data.contractors || [];
-            populateWorkerSelect();
+            leads = data.leads || [];
+            displayLeads();
         } else {
-            showMessage(data.error || '加载员工列表失败', 'error');
+            showMessage(data.error || 'Failed to load leads', 'error');
         }
     } catch (error) {
-        showMessage('连接错误：' + error.message, 'error');
+        showMessage('Connection error: ' + error.message, 'error');
     }
 }
 
-function populateWorkerSelect() {
-    const select = document.getElementById('worker-select');
-    select.innerHTML = '<option value="">-- 选择一名员工 --</option>';
+async function displayLeads() {
+    const container = document.getElementById('leads-list');
 
-    workers.forEach(worker => {
-        const option = document.createElement('option');
-        option.value = worker.username;
-        option.textContent = `${worker.display_name} (${worker.username})`;
-        select.appendChild(option);
-    });
-}
-
-async function handleWorkerSelection() {
-    const workerUsername = document.getElementById('worker-select').value;
-
-    if (!workerUsername) {
-        document.getElementById('worker-status').style.display = 'none';
-        document.getElementById('action-buttons').style.display = 'none';
+    if (leads.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #666;">No leads found. Create new leads in User Management.</p>';
         return;
     }
 
-    const worker = workers.find(w => w.username === workerUsername);
+    let html = '<div class="leads-grid">';
 
+    for (const lead of leads) {
+        // Get members for this lead
+        const members = await getLeadMembers(lead.username);
+
+        html += `
+            <div class="lead-card">
+                <h3>${lead.display_name}</h3>
+                <p><strong>Username:</strong> ${lead.username}</p>
+                <p><strong>Email:</strong> ${lead.email}</p>
+                <p><strong>Members:</strong> ${members.length}</p>
+                <button class="btn btn-primary btn-sm" onclick="viewLeadDetails('${lead.username}')">
+                    View Details
+                </button>
+            </div>
+        `;
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+async function getLeadMembers(leadUsername) {
     try {
-        // Check if worker has open time entry
         const response = await fetch(
-            `${API_BASE_URL}/attendance/my-entries?username=${workerUsername}`
+            `${API_BASE_URL}/users/lead/${leadUsername}/members`
         );
         const data = await response.json();
 
         if (response.ok) {
-            const entries = data.entries || [];
-            const openEntry = entries.find(e => e.out_time === null);
-
-            // Show worker status
-            document.getElementById('selected-worker-name').textContent = worker.display_name;
-
-            if (openEntry) {
-                document.getElementById('worker-clock-status').innerHTML =
-                    '<span class="status-clocked-in">已签到</span>';
-                document.getElementById('generate-checkin-btn').disabled = true;
-                document.getElementById('generate-checkout-btn').disabled = false;
-            } else {
-                document.getElementById('worker-clock-status').innerHTML =
-                    '<span class="status-clocked-out">已签退</span>';
-                document.getElementById('generate-checkin-btn').disabled = false;
-                document.getElementById('generate-checkout-btn').disabled = true;
-            }
-
-            document.getElementById('worker-status').style.display = 'block';
-            document.getElementById('action-buttons').style.display = 'flex';
+            return data.members || [];
         }
+        return [];
     } catch (error) {
-        showMessage('检查员工状态时出错：' + error.message, 'error');
+        console.error('Error loading members:', error);
+        return [];
     }
 }
 
-async function generateQR(action) {
-    const workerUsername = document.getElementById('worker-select').value;
+async function viewLeadDetails(leadUsername) {
+    const lead = leads.find(l => l.username === leadUsername);
+    if (!lead) return;
 
-    if (!workerUsername) {
-        showMessage('请先选择一名员工', 'error');
-        return;
-    }
+    const members = await getLeadMembers(leadUsername);
 
-    try {
-        const response = await fetch(`${API_BASE_URL}/attendance/qr/generate`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                manager_username: currentUser.username,
-                worker_username: workerUsername,
-                action: action
-            })
-        });
+    let membersHtml = members.length > 0
+        ? members.map(m => `
+            <li>
+                <strong>${m.display_name}</strong> (${m.username})
+                <br><small>${m.email}</small>
+            </li>
+          `).join('')
+        : '<li style="color: #666;">No members yet</li>';
 
-        const data = await response.json();
+    const detailsHtml = `
+        <div class="card" style="background: #f8f9fa; margin-top: 20px; border: 2px solid #007bff;">
+            <h3>Lead Details: ${lead.display_name}</h3>
+            <div style="margin: 15px 0;">
+                <p><strong>Username:</strong> ${lead.username}</p>
+                <p><strong>Email:</strong> ${lead.email}</p>
+                <p><strong>Created:</strong> ${new Date(lead.created_at).toLocaleDateString()}</p>
+            </div>
+            <h4>Members (${members.length})</h4>
+            <ul style="list-style: none; padding: 0;">
+                ${membersHtml}
+            </ul>
+            <button class="btn btn-secondary" onclick="closeLeadDetails()">Close</button>
+        </div>
+    `;
 
-        if (response.ok) {
-            displayQRCode(data);
-            showMessage(`已为 ${action} 生成二维码`, 'success');
-        } else {
-            showMessage(data.error || '生成二维码失败', 'error');
-        }
-    } catch (error) {
-        showMessage('连接错误：' + error.message, 'error');
-    }
+    const detailsContainer = document.getElementById('lead-details');
+    detailsContainer.innerHTML = detailsHtml;
+    detailsContainer.style.display = 'block';
 }
 
-function displayQRCode(data) {
-    // Clear existing QR code
-    document.getElementById('qrcode').innerHTML = '';
-
-    // Create new QR code
-    qrCode = new QRCode(document.getElementById('qrcode'), {
-        text: data.token,
-        width: 256,
-        height: 256,
-        colorDark: '#000000',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.H
-    });
-
-    // Update display
-    document.getElementById('qr-worker-name').textContent = data.worker_name || data.worker_username;
-    document.getElementById('qr-action').textContent = data.action.toUpperCase();
-    document.getElementById('qr-action-type').textContent = data.action;
-
-    // Show QR section, hide action buttons
-    document.getElementById('qr-display').style.display = 'block';
-    document.getElementById('action-buttons').style.display = 'none';
-
-    // Start countdown timer
-    startQRTimer(data.expires_in_seconds || 300);
-
-    // Poll for QR code status
-    pollQRStatus(data.token);
-}
-
-function startQRTimer(seconds) {
-    let remaining = seconds;
-
-    // Clear existing timer
-    if (qrTimer) {
-        clearInterval(qrTimer);
-    }
-
-    updateTimerDisplay(remaining);
-
-    qrTimer = setInterval(() => {
-        remaining--;
-        updateTimerDisplay(remaining);
-
-        if (remaining <= 0) {
-            clearInterval(qrTimer);
-            showMessage('二维码已过期。请生成新码。', 'error');
-            cancelQR();
-        }
-    }, 1000);
-}
-
-function updateTimerDisplay(seconds) {
-    const minutes = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    document.getElementById('qr-timer').textContent =
-        `${minutes}:${secs.toString().padStart(2, '0')}`;
-}
-
-async function pollQRStatus(token) {
-    const maxAttempts = 60; // Poll for 5 minutes (60 * 5 seconds)
-    let attempts = 0;
-
-    const pollInterval = setInterval(async () => {
-        attempts++;
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/attendance/qr/status/${token}`);
-            const data = await response.json();
-
-            if (response.ok) {
-                if (data.status === 'used') {
-                    clearInterval(pollInterval);
-                    showMessage(`${data.action} 成功完成！`, 'success');
-                    cancelQR();
-                    handleWorkerSelection(); // Refresh worker status
-                } else if (data.status === 'failed' || data.status === 'expired') {
-                    clearInterval(pollInterval);
-                    showMessage(`二维码 ${data.status}`, 'error');
-                    cancelQR();
-                }
-            }
-        } catch (error) {
-            console.error('Error polling QR status:', error);
-        }
-
-        if (attempts >= maxAttempts) {
-            clearInterval(pollInterval);
-        }
-    }, 5000); // Poll every 5 seconds
-}
-
-function cancelQR() {
-    if (qrTimer) {
-        clearInterval(qrTimer);
-        qrTimer = null;
-    }
-
-    document.getElementById('qr-display').style.display = 'none';
-    document.getElementById('action-buttons').style.display = 'flex';
-    document.getElementById('qrcode').innerHTML = '';
+function closeLeadDetails() {
+    document.getElementById('lead-details').style.display = 'none';
+    document.getElementById('lead-details').innerHTML = '';
 }
 
 async function loadPendingApprovals() {
     try {
         const response = await fetch(
-            `${API_BASE_URL}/attendance/pending-approvals?manager_username=${currentUser.username}`
+            `${API_BASE_URL}/attendance/pending-approvals?username=${currentUser.username}`
         );
         const data = await response.json();
 
         if (response.ok) {
             displayPendingApprovals(data.pending_entries || []);
         } else {
-            showMessage(data.error || '加载待审批失败', 'error');
+            showMessage(data.error || 'Failed to load pending approvals', 'error');
         }
     } catch (error) {
-        showMessage('连接错误：' + error.message, 'error');
+        showMessage('Connection error: ' + error.message, 'error');
     }
 }
 
@@ -321,7 +212,7 @@ function displayPendingApprovals(entries) {
     const container = document.getElementById('pending-content');
 
     if (!entries || entries.length === 0) {
-        container.innerHTML = '<p>无待审批</p>';
+        container.innerHTML = '<p>No pending approvals</p>';
         return;
     }
 
@@ -329,10 +220,10 @@ function displayPendingApprovals(entries) {
         <table>
             <thead>
                 <tr>
-                    <th>员工</th>
-                    <th>签到</th>
-                    <th>签退</th>
-                    <th>操作</th>
+                    <th>User</th>
+                    <th>Check-in</th>
+                    <th>Check-out</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -345,8 +236,8 @@ function displayPendingApprovals(entries) {
                 <td>${formatDateTime(entry.in_time)}</td>
                 <td>${formatDateTime(entry.out_time)}</td>
                 <td>
-                    <button onclick="approveEntry(${entry.id}, 'Approved')" class="btn btn-success btn-sm">批准</button>
-                    <button onclick="approveEntry(${entry.id}, 'Rejected')" class="btn btn-danger btn-sm">拒绝</button>
+                    <button onclick="approveEntry(${entry.id}, 'Approved')" class="btn btn-success btn-sm">Approve</button>
+                    <button onclick="approveEntry(${entry.id}, 'Rejected')" class="btn btn-danger btn-sm">Reject</button>
                 </td>
             </tr>
         `;
@@ -362,7 +253,7 @@ async function approveEntry(entryId, status) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                manager_username: currentUser.username,
+                approver_username: currentUser.username,
                 entry_id: entryId,
                 status: status
             })
@@ -374,21 +265,21 @@ async function approveEntry(entryId, status) {
             showMessage(data.message, 'success');
             loadPendingApprovals();
         } else {
-            showMessage(data.error || '审批失败', 'error');
+            showMessage(data.error || 'Approval failed', 'error');
         }
     } catch (error) {
-        showMessage('连接错误：' + error.message, 'error');
+        showMessage('Connection error: ' + error.message, 'error');
     }
 }
 
 function handleLogout() {
     sessionStorage.removeItem('user');
     currentUser = null;
-    workers = [];
+    leads = [];
     document.getElementById('dashboard-section').style.display = 'none';
     document.getElementById('login-section').style.display = 'block';
     document.getElementById('login-form').reset();
-    showMessage('登出成功', 'success');
+    showMessage('Logged out successfully', 'success');
 }
 
 function showMessage(message, type = 'success') {
@@ -403,9 +294,9 @@ function showMessage(message, type = 'success') {
 }
 
 function formatDateTime(dateTimeString) {
-    if (!dateTimeString) return '无';
+    if (!dateTimeString) return 'N/A';
     const date = new Date(dateTimeString);
-    return date.toLocaleString('zh-CN', {
+    return date.toLocaleString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
@@ -414,5 +305,7 @@ function formatDateTime(dateTimeString) {
     });
 }
 
-// Make approveEntry globally accessible
+// Make functions globally accessible
 window.approveEntry = approveEntry;
+window.viewLeadDetails = viewLeadDetails;
+window.closeLeadDetails = closeLeadDetails;

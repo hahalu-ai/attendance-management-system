@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lead Portal - Member Management & QR Check-in</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <style>
+        .qr-code-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+        }
+
+        .qr-display {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .qr-instructions {
+            margin-top: 15px;
+            font-size: 1.1em;
+            color: #666;
+        }
+
+        .qr-timer {
+            font-size: 1.5em;
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .member-status {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .status-clocked-in {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .status-clocked-out {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .members-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .member-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 4px solid #007bff;
+        }
+
+        .member-card h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        .member-card p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .member-card .btn {
+            margin-top: 10px;
+            font-size: 0.85em;
+            padding: 6px 12px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            border-bottom: 2px solid #ddd;
+            margin-bottom: 20px;
+        }
+
+        .nav-tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 16px;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .nav-tab.active {
+            color: #007bff;
+            border-bottom-color: #007bff;
+            font-weight: bold;
+        }
+
+        .nav-tab:hover {
+            color: #0056b3;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Lead Portal</h1>
+            <p class="subtitle">Manage Members & QR Check-in/out</p>
+            <div id="user-info" class="user-info"></div>
+        </header>
+
+        <!-- Login Section -->
+        <div id="login-section" class="section">
+            <div class="card">
+                <h2>Lead Login</h2>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Login</button>
+                    <a href="../index.html" class="btn btn-secondary" style="margin-top: 10px; display: inline-block;">Back to Home</a>
+                </form>
+            </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard-section" class="section" style="display: none;">
+            <!-- Navigation Tabs -->
+            <div class="nav-tabs">
+                <button class="nav-tab active" data-tab="qr-tab">QR Check-in/out</button>
+                <button class="nav-tab" data-tab="members-tab">Manage Members</button>
+                <button class="nav-tab" data-tab="approvals-tab">Pending Approvals</button>
+            </div>
+
+            <!-- QR Code Tab -->
+            <div id="qr-tab" class="tab-content active">
+                <div class="card">
+                    <h2>Generate QR Code for Member</h2>
+
+                    <div class="form-group">
+                        <label for="member-select">Select Member:</label>
+                        <select id="member-select" class="form-control">
+                            <option value="">-- Select a Member --</option>
+                        </select>
+                    </div>
+
+                    <div id="member-status" class="member-status" style="display: none;">
+                        <h3 id="selected-member-name"></h3>
+                        <p>Status: <span id="member-clock-status"></span></p>
+                        <p id="last-checkin-time"></p>
+                    </div>
+
+                    <div id="action-buttons" class="action-buttons" style="display: none;">
+                        <button id="generate-checkin-btn" class="btn btn-success">
+                            Generate Check-in QR Code
+                        </button>
+                        <button id="generate-checkout-btn" class="btn btn-danger">
+                            Generate Check-out QR Code
+                        </button>
+                        <button id="refresh-members-btn" class="btn btn-secondary">
+                            Refresh Members
+                        </button>
+                    </div>
+
+                    <div id="qr-display" class="qr-display" style="display: none;">
+                        <h3>QR Code Generated!</h3>
+                        <div id="qr-code-container" class="qr-code-container"></div>
+                        <p class="qr-instructions">
+                            Member should scan this QR code with their mobile device<br>
+                            QR code expires in: <span class="qr-timer" id="qr-timer">5:00</span>
+                        </p>
+                        <button id="cancel-qr-btn" class="btn btn-secondary">Cancel QR Code</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Members Management Tab -->
+            <div id="members-tab" class="tab-content">
+                <div class="card">
+                    <h2>My Members</h2>
+
+                    <button id="add-member-btn" class="btn btn-primary" style="margin-bottom: 20px;">
+                        Add New Member
+                    </button>
+
+                    <div id="members-list" class="members-grid">
+                        <!-- Members will be loaded here -->
+                    </div>
+
+                    <!-- Add Member Modal -->
+                    <div id="add-member-modal" style="display: none;">
+                        <div class="card" style="background: #f8f9fa; border: 2px solid #007bff; margin-top: 20px;">
+                            <h3>Add New Member</h3>
+                            <form id="add-member-form">
+                                <div class="form-group">
+                                    <label for="new-member-username">Username:</label>
+                                    <input type="text" id="new-member-username" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="new-member-name">Display Name:</label>
+                                    <input type="text" id="new-member-name" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="new-member-email">Email:</label>
+                                    <input type="email" id="new-member-email" class="form-control" required>
+                                </div>
+                                <div style="display: flex; gap: 10px;">
+                                    <button type="submit" class="btn btn-primary">Create Member</button>
+                                    <button type="button" id="cancel-add-member-btn" class="btn btn-secondary">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Approvals Tab -->
+            <div id="approvals-tab" class="tab-content">
+                <div class="card">
+                    <h2>Pending Approvals</h2>
+                    <button id="refresh-pending-btn" class="btn btn-secondary" style="margin-bottom: 15px;">
+                        Refresh List
+                    </button>
+                    <div id="pending-approvals-list">
+                        <!-- Pending approvals will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions Section -->
+            <div class="card" style="margin-top: 20px;">
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button id="account-settings-btn" class="btn btn-secondary">
+                        Account Settings
+                    </button>
+                    <button id="logout-btn" class="btn btn-danger">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Message Display -->
+        <div id="message" class="message"></div>
+    </div>
+
+    <script src="../js/lead.js"></script>
+</body>
+</html>

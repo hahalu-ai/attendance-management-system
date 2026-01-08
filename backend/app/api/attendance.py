@@ -6,11 +6,11 @@ import secrets
 
 attendance_bp = Blueprint('attendance', __name__)
 
-def generate_qr_token(manager_username, worker_username, action_type):
+def generate_qr_token(lead_username, member_username, action_type):
     """Generate a secure token for QR code check-in/check-out"""
     timestamp = datetime.now().isoformat()
     random_salt = secrets.token_hex(16)
-    data = f"{manager_username}:{worker_username}:{action_type}:{timestamp}:{random_salt}"
+    data = f"{lead_username}:{member_username}:{action_type}:{timestamp}:{random_salt}"
     token = hashlib.sha256(data.encode()).hexdigest()
     return token, timestamp
 
@@ -61,8 +61,8 @@ def check_in():
         if open_entry:
             return jsonify({"error": "You have an open time entry. Please check out first."}), 400
 
-        # Managers auto-approve their own time entries
-        if user['user_level'] == 'Manager':
+        # Managers and Leads auto-approve their own time entries
+        if user['user_level'] in ['Manager', 'Lead']:
             insert_query = """
                 INSERT INTO time_entries
                 (username, in_time, status, approved_by, approved_at)
@@ -74,17 +74,17 @@ def check_in():
                 "entry_id": entry_id
             }), 201
 
-        # Contractors need approval
+        # Members need approval from their Lead (but Members shouldn't use manual check-in)
         else:
-            # Check if contractor has a manager
-            manager_query = """
-                SELECT manager_username FROM manager_assignments
-                WHERE contractor_username = %s
+            # Check if member has a lead
+            lead_query = """
+                SELECT lead_username FROM lead_assignments
+                WHERE member_username = %s
             """
-            manager = execute_query(manager_query, (username,), fetch_one=True)
+            lead = execute_query(lead_query, (username,), fetch_one=True)
 
-            if not manager:
-                return jsonify({"error": "No manager assigned. Cannot check in."}), 403
+            if not lead:
+                return jsonify({"error": "No lead assigned. Members should use QR code check-in."}), 403
 
             insert_query = """
                 INSERT INTO time_entries
@@ -93,7 +93,7 @@ def check_in():
             """
             entry_id = execute_query(insert_query, (username,), commit=True)
             return jsonify({
-                "message": "Check-in submitted. Waiting for manager approval.",
+                "message": "Check-in submitted. Waiting for lead approval.",
                 "entry_id": entry_id
             }), 201
 
@@ -163,30 +163,41 @@ def my_entries():
 
 @attendance_bp.route('/pending-approvals', methods=['GET'])
 def pending_approvals():
-    """Get pending time entries for a manager to approve"""
-    manager_username = request.args.get('manager_username')
+    """Get pending time entries for a Manager or Lead to approve"""
+    approver_username = request.args.get('username')
 
-    if not manager_username:
-        return jsonify({"error": "manager_username parameter is required"}), 400
+    if not approver_username:
+        return jsonify({"error": "username parameter is required"}), 400
 
     try:
-        # Verify user is a manager
+        # Verify user is a Manager or Lead
         user_query = "SELECT user_level FROM users WHERE username = %s"
-        user = execute_query(user_query, (manager_username,), fetch_one=True)
+        user = execute_query(user_query, (approver_username,), fetch_one=True)
 
-        if not user or user['user_level'] != 'Manager':
-            return jsonify({"error": "Only managers can view pending approvals"}), 403
+        if not user or user['user_level'] not in ['Manager', 'Lead']:
+            return jsonify({"error": "Only Managers and Leads can view pending approvals"}), 403
 
-        # Get pending entries for this manager's contractors
-        query = """
-            SELECT te.id, te.username, u.display_name, te.in_time, te.out_time, te.status
-            FROM time_entries te
-            JOIN manager_assignments ma ON te.username = ma.contractor_username
-            JOIN users u ON te.username = u.username
-            WHERE ma.manager_username = %s AND te.status = 'Pending'
-            ORDER BY te.in_time DESC
-        """
-        entries = execute_query(query, (manager_username,), fetch_all=True)
+        # Managers see ALL pending entries
+        if user['user_level'] == 'Manager':
+            query = """
+                SELECT te.id, te.username, u.display_name, te.in_time, te.out_time, te.status
+                FROM time_entries te
+                JOIN users u ON te.username = u.username
+                WHERE te.status = 'Pending'
+                ORDER BY te.in_time DESC
+            """
+            entries = execute_query(query, fetch_all=True)
+        else:  # Lead
+            # Get pending entries for this Lead's Members
+            query = """
+                SELECT te.id, te.username, u.display_name, te.in_time, te.out_time, te.status
+                FROM time_entries te
+                JOIN lead_assignments la ON te.username = la.member_username
+                JOIN users u ON te.username = u.username
+                WHERE la.lead_username = %s AND te.status = 'Pending'
+                ORDER BY te.in_time DESC
+            """
+            entries = execute_query(query, (approver_username,), fetch_all=True)
 
         return jsonify({"pending_entries": entries}), 200
 
@@ -197,32 +208,40 @@ def pending_approvals():
 def approve_entry():
     """Approve or reject a time entry"""
     data = request.get_json() or {}
-    manager_username = data.get('manager_username')
+    approver_username = data.get('approver_username') or data.get('manager_username')  # Support both parameter names
     entry_id = data.get('entry_id')
     status = data.get('status')  # 'Approved' or 'Rejected'
     notes = data.get('notes', '')
 
-    if not all([manager_username, entry_id, status]):
-        return jsonify({"error": "manager_username, entry_id, and status are required"}), 400
+    if not all([approver_username, entry_id, status]):
+        return jsonify({"error": "approver_username, entry_id, and status are required"}), 400
 
     if status not in ['Approved', 'Rejected']:
         return jsonify({"error": "Status must be 'Approved' or 'Rejected'"}), 400
 
     try:
-        # Verify manager
+        # Verify approver is Manager or Lead
         user_query = "SELECT user_level FROM users WHERE username = %s"
-        user = execute_query(user_query, (manager_username,), fetch_one=True)
+        user = execute_query(user_query, (approver_username,), fetch_one=True)
 
-        if not user or user['user_level'] != 'Manager':
-            return jsonify({"error": "Only managers can approve entries"}), 403
+        if not user or user['user_level'] not in ['Manager', 'Lead']:
+            return jsonify({"error": "Only Managers and Leads can approve entries"}), 403
 
-        # Get the time entry and verify manager has authority
-        entry_query = """
-            SELECT te.username FROM time_entries te
-            JOIN manager_assignments ma ON te.username = ma.contractor_username
-            WHERE te.id = %s AND ma.manager_username = %s
-        """
-        entry = execute_query(entry_query, (entry_id, manager_username), fetch_one=True)
+        # Managers can approve any entry
+        if user['user_level'] == 'Manager':
+            entry_query = """
+                SELECT te.username FROM time_entries te
+                WHERE te.id = %s
+            """
+            entry = execute_query(entry_query, (entry_id,), fetch_one=True)
+        else:  # Lead
+            # Get the time entry and verify Lead has authority over this Member
+            entry_query = """
+                SELECT te.username FROM time_entries te
+                JOIN lead_assignments la ON te.username = la.member_username
+                WHERE te.id = %s AND la.lead_username = %s
+            """
+            entry = execute_query(entry_query, (entry_id, approver_username), fetch_one=True)
 
         if not entry:
             return jsonify({"error": "Entry not found or you don't have permission"}), 404
@@ -233,7 +252,7 @@ def approve_entry():
             SET status = %s, approved_by = %s, approved_at = NOW(), notes = %s
             WHERE id = %s
         """
-        execute_query(update_query, (status, manager_username, notes, entry_id), commit=True)
+        execute_query(update_query, (status, approver_username, notes, entry_id), commit=True)
 
         return jsonify({
             "message": f"Entry {status.lower()} successfully",
@@ -301,52 +320,55 @@ def monthly_summary():
 @attendance_bp.route('/qr/generate', methods=['POST'])
 def generate_qr_request():
     """
-    Manager generates a QR code request for a worker to check in/out
+    Lead generates a QR code request for a Member to check in/out
     Request body: {
-        "manager_username": "ylin",
-        "worker_username": "xlu",
+        "lead_username": "jsmith",
+        "member_username": "member01",
         "action": "check-in" or "check-out"
     }
     """
     data = request.get_json() or {}
-    manager_username = data.get('manager_username')
-    worker_username = data.get('worker_username')
+    lead_username = data.get('lead_username') or data.get('manager_username')  # Support old parameter name
+    member_username = data.get('member_username') or data.get('worker_username')  # Support old parameter name
     action = data.get('action')  # 'check-in' or 'check-out'
 
-    if not all([manager_username, worker_username, action]):
-        return jsonify({"error": "manager_username, worker_username, and action are required"}), 400
+    if not all([lead_username, member_username, action]):
+        return jsonify({"error": "lead_username, member_username, and action are required"}), 400
 
     if action not in ['check-in', 'check-out']:
         return jsonify({"error": "action must be 'check-in' or 'check-out'"}), 400
 
     try:
-        # Verify manager
-        manager_query = "SELECT user_level FROM users WHERE username = %s"
-        manager = execute_query(manager_query, (manager_username,), fetch_one=True)
+        # Verify Lead
+        lead_query = "SELECT user_level FROM users WHERE username = %s"
+        lead = execute_query(lead_query, (lead_username,), fetch_one=True)
 
-        if not manager or manager['user_level'] != 'Manager':
-            return jsonify({"error": "Only managers can generate QR codes"}), 403
+        if not lead or lead['user_level'] != 'Lead':
+            return jsonify({"error": "Only Leads can generate QR codes"}), 403
 
-        # Verify worker exists
-        worker_query = "SELECT username, user_level FROM users WHERE username = %s"
-        worker = execute_query(worker_query, (worker_username,), fetch_one=True)
+        # Verify Member exists
+        member_query = "SELECT username, display_name, user_level FROM users WHERE username = %s"
+        member = execute_query(member_query, (member_username,), fetch_one=True)
 
-        if not worker:
-            return jsonify({"error": "Worker not found"}), 404
+        if not member:
+            return jsonify({"error": "Member not found"}), 404
 
-        # Verify manager-worker relationship
+        if member['user_level'] != 'Member':
+            return jsonify({"error": "QR codes can only be generated for Members"}), 400
+
+        # Verify Lead-Member relationship
         relationship_query = """
-            SELECT 1 FROM manager_assignments
-            WHERE manager_username = %s AND contractor_username = %s
+            SELECT 1 FROM lead_assignments
+            WHERE lead_username = %s AND member_username = %s
         """
         relationship = execute_query(
             relationship_query,
-            (manager_username, worker_username),
+            (lead_username, member_username),
             fetch_one=True
         )
 
         if not relationship:
-            return jsonify({"error": "Worker is not assigned to this manager"}), 403
+            return jsonify({"error": "Member is not assigned to this Lead"}), 403
 
         # For check-out, verify there's an open time entry
         if action == 'check-out':
@@ -355,10 +377,10 @@ def generate_qr_request():
                 WHERE username = %s AND out_time IS NULL
                 ORDER BY in_time DESC LIMIT 1
             """
-            open_entry = execute_query(open_query, (worker_username,), fetch_one=True)
+            open_entry = execute_query(open_query, (member_username,), fetch_one=True)
 
             if not open_entry:
-                return jsonify({"error": "Worker has no open time entry to check out"}), 400
+                return jsonify({"error": "Member has no open time entry to check out"}), 400
 
         # For check-in, verify there's no open time entry
         if action == 'check-in':
@@ -367,31 +389,31 @@ def generate_qr_request():
                 WHERE username = %s AND out_time IS NULL
                 ORDER BY in_time DESC LIMIT 1
             """
-            open_entry = execute_query(open_query, (worker_username,), fetch_one=True)
+            open_entry = execute_query(open_query, (member_username,), fetch_one=True)
 
             if open_entry:
-                return jsonify({"error": "Worker already has an open time entry"}), 400
+                return jsonify({"error": "Member already has an open time entry"}), 400
 
         # Generate QR token
-        token, timestamp = generate_qr_token(manager_username, worker_username, action)
+        token, timestamp = generate_qr_token(lead_username, member_username, action)
 
         # Store the QR request in database (expires in 5 minutes)
         insert_query = """
             INSERT INTO qr_requests
-            (token, manager_username, worker_username, action_type, created_at, expires_at, status)
+            (token, lead_username, member_username, action_type, created_at, expires_at, status)
             VALUES (%s, %s, %s, %s, %s, DATE_ADD(%s, INTERVAL 5 MINUTE), 'pending')
         """
         execute_query(
             insert_query,
-            (token, manager_username, worker_username, action, timestamp, timestamp),
+            (token, lead_username, member_username, action, timestamp, timestamp),
             commit=True
         )
 
         return jsonify({
             "message": "QR code generated successfully",
             "token": token,
-            "worker_username": worker_username,
-            "worker_name": worker.get('display_name', worker_username),
+            "member_username": member_username,
+            "member_name": member.get('display_name', member_username),
             "action": action,
             "expires_in_seconds": 300,
             "timestamp": timestamp
@@ -403,15 +425,15 @@ def generate_qr_request():
 @attendance_bp.route('/qr/verify', methods=['POST'])
 def verify_qr_code():
     """
-    Worker scans QR code to confirm check-in/check-out
+    Member scans QR code to confirm check-in/check-out
     Request body: {
         "token": "abc123...",
-        "worker_username": "xlu"  # Optional, for verification
+        "member_username": "member01"  # Optional, for verification
     }
     """
     data = request.get_json() or {}
     token = data.get('token')
-    worker_username = data.get('worker_username')  # Optional
+    member_username = data.get('member_username') or data.get('worker_username')  # Support old parameter name
 
     if not token:
         return jsonify({"error": "Token is required"}), 400
@@ -428,13 +450,13 @@ def verify_qr_code():
         if not qr_request:
             return jsonify({"error": "Invalid or expired QR code"}), 400
 
-        # Verify worker if username provided
-        if worker_username and qr_request['worker_username'] != worker_username:
-            return jsonify({"error": "QR code is not for this worker"}), 403
+        # Verify member if username provided
+        if member_username and qr_request['member_username'] != member_username:
+            return jsonify({"error": "QR code is not for this member"}), 403
 
         action = qr_request['action_type']
-        worker_user = qr_request['worker_username']
-        manager_user = qr_request['manager_username']
+        member_user = qr_request['member_username']
+        lead_user = qr_request['lead_username']
 
         # Perform the action
         if action == 'check-in':
@@ -444,21 +466,21 @@ def verify_qr_code():
                 WHERE username = %s AND out_time IS NULL
                 ORDER BY in_time DESC LIMIT 1
             """
-            open_entry = execute_query(open_query, (worker_user,), fetch_one=True)
+            open_entry = execute_query(open_query, (member_user,), fetch_one=True)
 
             if open_entry:
-                # Mark QR request as used
+                # Mark QR request as failed
                 update_query = "UPDATE qr_requests SET status = 'failed' WHERE token = %s"
                 execute_query(update_query, (token,), commit=True)
-                return jsonify({"error": "Worker already has an open time entry"}), 400
+                return jsonify({"error": "Member already has an open time entry"}), 400
 
-            # Create check-in entry (pending approval)
+            # Create check-in entry (auto-approved via QR code)
             insert_query = """
                 INSERT INTO time_entries
-                (username, in_time, status)
-                VALUES (%s, NOW(), 'Pending')
+                (username, in_time, status, approved_by, approved_at)
+                VALUES (%s, NOW(), 'Approved', %s, NOW())
             """
-            entry_id = execute_query(insert_query, (worker_user,), commit=True)
+            entry_id = execute_query(insert_query, (member_user, lead_user), commit=True)
 
         else:  # check-out
             # Find open entry
@@ -467,7 +489,7 @@ def verify_qr_code():
                 WHERE username = %s AND out_time IS NULL
                 ORDER BY in_time DESC LIMIT 1
             """
-            open_entry = execute_query(open_query, (worker_user,), fetch_one=True)
+            open_entry = execute_query(open_query, (member_user,), fetch_one=True)
 
             if not open_entry:
                 # Mark QR request as failed
@@ -495,7 +517,7 @@ def verify_qr_code():
         return jsonify({
             "message": f"{action.title()} successful",
             "action": action,
-            "worker_username": worker_user,
+            "member_username": member_user,
             "entry_id": entry_id,
             "timestamp": datetime.now().isoformat()
         }), 200
@@ -515,7 +537,8 @@ def get_qr_status(token):
 
         return jsonify({
             "token": qr_request['token'],
-            "worker_username": qr_request['worker_username'],
+            "member_username": qr_request['member_username'],
+            "lead_username": qr_request['lead_username'],
             "action": qr_request['action_type'],
             "status": qr_request['status'],
             "created_at": qr_request['created_at'].isoformat() if qr_request['created_at'] else None,
