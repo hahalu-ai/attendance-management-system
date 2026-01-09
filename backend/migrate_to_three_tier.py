@@ -121,9 +121,16 @@ def modify_users_table(cursor, connection):
         """)
         result = cursor.fetchone()
 
-        if result and 'Lead' in result[0] and 'Member' in result[0]:
-            print("   ℹ️  Users table already has three-tier enum, skipping...")
-            return True
+        if result:
+            # Handle both dictionary and tuple cursor results
+            if isinstance(result, dict):
+                enum_values = result.get('COLUMN_TYPE', '')
+            else:
+                enum_values = result[0] if result else ''
+
+            if 'Lead' in enum_values and 'Member' in enum_values:
+                print("   ℹ️  Users table already has three-tier enum, skipping...")
+                return True
 
         # Modify the enum to include Lead and Member
         cursor.execute("""
