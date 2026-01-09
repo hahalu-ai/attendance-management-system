@@ -23,4 +23,4 @@ WORKDIR /app/backend
 EXPOSE 5001
 
 # Start command - run migration first, then start server
-CMD ["sh", "-c", "python migrate_to_three_tier.py && gunicorn run:app --bind 0.0.0.0:${PORT:-5001} --workers 2 --timeout 60"]
+CMD python migrate_to_three_tier.py && gunicorn run:app --bind 0.0.0.0:$PORT --workers 2 --timeout 60
